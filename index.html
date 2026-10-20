@@ -949,7 +949,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act],[data-tab]');if(!b||b.disabled)return;
   if(b.dataset.tab){st.tab=b.dataset.tab;st.reto=null;st.panel=null;if(st.screen!=='semana')st.screen='semana';render();return;}
   const a=b.dataset.act;
-  if(a==='video'){const m=document.createElement('div');m.className='vmodal';m.innerHTML='<video poster="poster.jpg" controls autoplay playsinline><source src="video.mp4" type="video/mp4"><source src="video.webm" type="video/webm"></video><button class="vclose" data-act="closeVideo" aria-label="Cerrar vídeo">×</button>';$phone.appendChild(m);return;}
+  if(a==='video'){const m=document.createElement('div');m.className='vmodal';m.innerHTML='<video poster="assets/poster.jpg" controls autoplay playsinline><source src="assets/video.mp4" type="video/mp4"><source src="assets/video.webm" type="video/webm"></video><button class="vclose" data-act="closeVideo" aria-label="Cerrar vídeo">×</button>';$phone.appendChild(m);return;}
   if(a==='closeVideo'){const m=$phone.querySelector('.vmodal');if(m)m.remove();return;}
   if(a==='go')go(b.dataset.to);
   else if(a==='qpick'){st.qsel=+b.dataset.i;render(true);}
