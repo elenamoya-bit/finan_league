@@ -10,6 +10,10 @@ Finan League is a financial-education game for people aged 18 to 25 who have som
 
 > Project for the *Creación e Innovación* course · MBA, EDEM Escuela de Empresarios (Valencia, 2026).
 
+### About this project
+
+Finan League is a **fast proposal**, the first project of our MBA. We built it in a few days, under time pressure, to test an idea quickly rather than to ship a finished product. We used **AI tools** throughout the process: to research, draft and review content, design the mockup, build the prototype and produce the explainer video. The team defined the problem, the concept and the decisions, and reviewed every output. Treat the figures and scenarios as first assumptions to validate, not final results.
+
 ---
 
 ## Play the prototype
