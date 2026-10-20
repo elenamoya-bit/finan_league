@@ -401,9 +401,12 @@ const DAYS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'
 const DAY1=['L','M','X','J','V','S','D'];
 const BOTS=['marcos.r','anap_99','jorge_m','sara.lz','pablo_g'];
 const LEVELS=['B','I','A'];
-const LEVEL={B:{n:'Básico',t:'Empiezas por lo esencial: ahorro, presupuesto y fondos indexados.',assets:'Efectivo, cuenta de ahorro y fondo indexado'},
-             I:{n:'Intermedio',t:'Ya distingues riesgos. Vas a trabajar diversificación, tipos de interés y empresas.',assets:'Lo anterior más bonos y acciones'},
-             A:{n:'Avanzado',t:'Dominas lo básico. Te esperan divisas, deuda pública y burbujas.',assets:'Lo anterior más oro, Bitcoin y divisas'}};
+const LEVEL={B:{n:'Básico',t:'Empiezas por lo esencial para gestionar tu dinero.',assets:'Efectivo, cuenta de ahorro y fondo indexado',
+               know:'saber que ahorrar es importante',learn:'hacer un presupuesto y crear tu colchón de emergencia'},
+             I:{n:'Intermedio',t:'Sabes detectar riesgos, pero aún te cuesta planificar a largo plazo.',assets:'Efectivo, cuenta de ahorro, fondo indexado, bonos y acciones',
+               know:'ahorro básico y detectar promesas sospechosas',learn:'diversificar y repartir entre ocio, ahorro y necesario'},
+             A:{n:'Avanzado',t:'Dominas lo básico y quieres ir más allá.',assets:'Efectivo, ahorro, fondo indexado, bonos, acciones, oro, Bitcoin y divisas',
+               know:'diversificar y entender el riesgo',learn:'tipos de interés, divisas y cómo detectar burbujas'}};
 const XP_LEVEL=200;
 const QUIZ=[
  {q:'Tienes 500 C ahorrados y te ofrecen algo que promete un 20 % en un mes. ¿Qué haces?',o:[['Lo meto todo, es una oportunidad',0],['Meto una parte para probar',1],['Desconfío: tanta rentabilidad implica mucho riesgo',2],['No sé qué haría',0]]},
@@ -532,8 +535,12 @@ V.nivel=()=>{const L=LEVEL[st.level];return `
    <p class="muted" style="text-align:center;max-width:300px">${L.t}</p>
  </div>
  <div class="lvl">${LEVELS.map(k=>`<div class="${k===st.level?'on':''}"><b>${k}</b>${LEVEL[k].n}</div>`).join('')}</div>
- <div class="card"><span class="eyebrow">Activos desbloqueados</span><span>${L.assets}</span></div>
- <p class="muted" style="text-align:center;font-size:13px">Ganas XP con los retos individuales y subes de nivel. Nada se bloquea.</p>
+ <div class="card" style="gap:12px">
+   <div style="display:flex;gap:12px;align-items:center"><div class="icon-box" style="flex:0 0 34px;height:34px">${ICON.check}</div><span style="font-size:14px"><b>Ya dominas:</b> ${L.know}</span></div>
+   <div style="display:flex;gap:12px;align-items:center"><div class="icon-box" style="flex:0 0 34px;height:34px;background:var(--violet-bg);color:var(--violet-soft)">${ICON.news}</div><span style="font-size:14px"><b>Vas a aprender:</b> ${L.learn}</span></div>
+ </div>
+ <div class="card"><span class="eyebrow">Con qué puedes invertir</span><span>${L.assets}</span></div>
+ <p class="muted" style="text-align:center;font-size:13px">Completa retos para ganar XP y subir de nivel. Tu nivel no te bloquea ninguna semana.</p>
  <button class="btn" data-act="go" data-to="bienvenida" style="margin-top:auto">Continuar</button>`;};
 
 V.bienvenida=()=>`
