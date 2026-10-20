@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E0F1A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Finan League</title>
+<meta name="description" content="Prototipo de Finan League: aprende a gestionar tu dinero compitiendo en una liga con 10.000 Curritos.">
+<style>html,body{margin:0}*{-webkit-tap-highlight-color:transparent}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<style>
+/* Layout: presenter notes beside a phone-sized working app; on phones the app takes the whole width. Single dark look matching the Finan League mockup. */
+:root{
+  --bg:#0A0B14; --app:#0E0F1A; --panel:#141526; --card:#181A2B; --raise:#23253A; --line:#2A2D45;
+  --fg:#F2F2F7; --soft:#C9CBE0; --muted:#A3A6BF;
+  --lime:#C6F432; --lime-hi:#E2FF7A; --lime-bg:#1E2410; --lime-chip:#23301A; --ink:#0E0F1A;
+  --violet:#8B7CFF; --violet-soft:#C9C3FF; --violet-bg:#1A1830;
+  --coral:#FF8A65; --coral-text:#FFB199; --coral-bg:#2A1B16;
+  --gold:#FFD166; --silver:#C9CBE0; --bronze:#E0A07A;
+  --display:'Bricolage Grotesque','Arial Narrow',system-ui,sans-serif;
+  --body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px}
+h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.stage{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;justify-content:center}
+.notes{flex:1 1 320px;min-width:0;max-width:460px;display:flex;flex-direction:column;gap:22px;padding-top:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--lime);color:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.5px}
+.word{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.5px}
+.notes h1{font-size:clamp(32px,4vw,46px);line-height:1}
+.notes h1 span{color:var(--lime)}
+.lede{color:var(--muted);font-size:16px;max-width:60ch}
+.howto{display:flex;flex-direction:column;gap:10px;padding:0;margin:0;list-style:none;counter-reset:s}
+.howto li{display:flex;gap:12px;align-items:flex-start;color:var(--soft);font-size:14px}
+.howto li::before{counter-increment:s;content:counter(s);flex:0 0 26px;height:26px;border-radius:8px;background:var(--card);color:var(--lime);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:14px}
+.jump{display:flex;flex-direction:column;gap:8px}
+.label{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}
+.jump-row{display:flex;flex-wrap:wrap;gap:8px}
+.ghost{min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:14px}
+.ghost:hover{border-color:var(--violet)}
+.fine{font-size:12px;color:var(--muted)}
+.coin{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;border-radius:50%;background:var(--lime);color:var(--ink);font-family:var(--display);font-weight:800;font-size:.8em;vertical-align:.08em}
+
+.phone{flex:0 1 400px;width:100%;max-width:400px;height:min(840px,calc(100vh - 56px));min-height:640px;border-radius:40px;border:8px solid var(--raise);background:var(--app);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.screen{flex:1;overflow-y:auto;padding:30px 20px 24px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin}
+.tabs{display:flex;justify-content:space-around;align-items:flex-start;padding:10px 4px 14px;background:var(--panel);border-top:1px solid var(--line)}
+.tab{min-width:64px;min-height:48px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;background:none;border:0;color:var(--muted);cursor:pointer}
+.tab[aria-current="page"]{color:var(--lime);font-weight:700}
+.tab svg{width:24px;height:24px}
+@media (max-width:900px){.notes{order:2;max-width:400px}}
+@media (max-width:460px){
+  body{padding-block:12px}
+  .phone{height:auto;min-height:0;border:0;border-radius:0;overflow:visible;background:transparent}
+  .screen{overflow:visible;padding:8px 0 24px}
+  .tabs{position:sticky;bottom:0;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  .notif{position:fixed;top:calc(10px + env(safe-area-inset-top,0px))}
+}
+
+/* app components */
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}
+.muted{color:var(--muted)}
+.big{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.04}
+.btn{min-height:52px;border-radius:14px;border:0;background:var(--lime);color:var(--ink);font-weight:700;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;padding:0 16px;text-align:center}
+.btn:hover{background:var(--lime-hi)}
+.btn[disabled]{background:var(--raise);color:var(--muted);cursor:not-allowed}
+.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.alt:hover{border-color:var(--violet)}
+.card{border-radius:18px;background:var(--card);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:500;color:var(--soft)}
+.field input,.field select{height:48px;border-radius:12px;border:1px solid var(--line);background:var(--app);padding:0 14px;font-size:15px;width:100%}
+.at{position:relative}
+.at span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.at input{padding-left:30px}
+.opt{border-radius:14px;border:1px solid var(--line);background:var(--card);text-align:left;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;width:100%}
+.opt:hover{border-color:var(--violet)}
+.opt[aria-pressed="true"]{border:2px solid var(--lime);background:var(--lime-bg);padding:11px 13px}
+.key{flex:0 0 30px;height:30px;border-radius:8px;background:var(--raise);display:flex;align-items:center;justify-content:center;font-weight:700}
+.opt[aria-pressed="true"] .key{background:var(--lime);color:var(--ink)}
+.opt-t{display:flex;flex-direction:column;gap:2px}
+.opt-t b{font-size:15px}
+.opt-t span{font-size:13px;color:var(--muted)}
+.bar{height:8px;border-radius:99px;background:var(--raise);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--lime)}
+.prog{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.prog i{height:6px;border-radius:99px;background:var(--raise)}
+.prog i.done{background:var(--violet)}
+.prog i.now{background:var(--lime)}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.money{font-family:var(--display);font-weight:800;font-size:19px;text-align:right}
+.up{color:var(--lime)} .down{color:var(--coral-text)}
+.pin{border:1px solid var(--coral)}
+.pin-h{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral-text)}
+.news{background:var(--violet);color:var(--ink);border:0}
+.news .eyebrow{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:4px 10px;border-radius:99px;background:var(--raise);font-size:12px;font-weight:700}
+.chip.pos{background:var(--lime-chip);color:var(--lime)}
+.chip.neg{background:var(--coral-bg);color:var(--coral-text)}
+.tip{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--violet-bg);color:var(--violet-soft);font-size:13px}
+.ok{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--lime-bg);color:var(--fg);font-size:14px}
+.warn{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--coral-bg);color:var(--fg);font-size:14px}
+.ok svg,.warn svg{flex:0 0 18px;margin-top:2px}
+.rank{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.rank-row{display:flex;justify-content:space-between;gap:8px}
+.rank-row.me{color:var(--lime);font-weight:700}
+.disclaimer{font-size:11px;color:var(--muted);text-align:center}
+.hero-money{border-radius:22px;background:var(--lime);color:var(--ink);padding:20px;display:flex;flex-direction:column;gap:4px}
+.hero-money .amt{font-family:var(--display);font-weight:800;font-size:46px;letter-spacing:-1.5px;line-height:1}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{border-radius:14px;background:var(--card);padding:12px;display:flex;flex-direction:column;gap:2px}
+.tile b{font-family:var(--display);font-weight:800;font-size:22px}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.days div{border-radius:10px;background:var(--card);padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.days b{font-size:15px;color:var(--lime)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--raise);font-size:14px}
+.row:last-child{border-bottom:0}
+.row>b:last-child,.row>.num:last-child{white-space:nowrap}
+[hidden]{display:none!important}
+
+.lvl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lvl div{border-radius:14px;border:1px solid var(--line);background:var(--card);padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.lvl b{font-family:var(--display);font-size:22px}
+.lvl div.on{border:2px solid var(--lime);background:var(--lime-bg);color:var(--fg)}
+.lvl div.on b{color:var(--lime)}
+.badge{align-self:flex-start;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;background:var(--raise);color:var(--soft)}
+.badge.rec{background:var(--lime);color:var(--ink)}
+.sc-card{border-radius:16px;border:1px solid var(--line);background:var(--card);padding:14px;display:flex;flex-direction:column;gap:6px;text-align:left;cursor:pointer;width:100%}
+.sc-card:hover{border-color:var(--violet)}
+.sc-card b{font-size:16px}
+.ind{display:flex;flex-direction:column;gap:6px}
+.ind-h{display:flex;justify-content:space-between;font-size:14px}
+.code{flex:1;height:48px;border-radius:12px;background:var(--app);color:var(--fg);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:4px}
+.toast{position:absolute;left:16px;right:16px;bottom:96px;padding:12px 14px;border-radius:12px;background:var(--fg);color:var(--ink);font-size:14px;font-weight:500;text-align:center;z-index:30}
+
+/* bank */
+.pill{padding:6px 12px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--soft)}
+.chart{width:100%;height:auto;display:block}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.act{min-height:76px;border-radius:16px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:13px;cursor:pointer;padding:8px 4px;text-align:center}
+.act svg{width:22px;height:22px;color:var(--lime)}
+.act.main{background:var(--lime);color:var(--ink);border:0}
+.act.main svg{color:var(--ink)}
+.act[aria-expanded="true"]{border-color:var(--lime)}
+.icon-box{flex:0 0 44px;height:44px;border-radius:12px;background:var(--lime-bg);color:var(--lime);display:flex;align-items:center;justify-content:center}
+.icon-box svg{width:22px;height:22px}
+.stack{display:flex;height:14px;border-radius:99px;overflow:hidden;gap:3px}
+.stack i{display:block;height:100%;min-width:3px}
+.legend{display:flex;flex-direction:column;gap:0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:0}
+.rep{display:grid;grid-template-columns:72px 1fr;gap:8px 12px;align-items:center;font-size:13px;color:var(--muted)}
+.mv{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--raise)}
+.mv:last-child{border-bottom:0}
+.mv-i{flex:0 0 40px;height:40px;border-radius:12px;background:var(--raise);display:flex;align-items:center;justify-content:center;color:var(--soft)}
+.mv-i.news{background:var(--violet-bg);color:var(--violet-soft)}
+.mv-i.dec{background:var(--lime-bg);color:var(--lime)}
+.mv-i.neg{background:var(--coral-bg);color:var(--coral-text)}
+.mv-i svg{width:20px;height:20px}
+.mv-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.mv-t b{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mv-t span{font-size:12px;color:var(--muted)}
+.mv-a{font-weight:700;font-size:15px;white-space:nowrap}
+.linkbtn{background:none;border:0;color:var(--lime);font-weight:700;cursor:pointer;padding:6px 0;font-size:14px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 80px;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--app);cursor:pointer;font-weight:700;font-size:14px}
+.seg button:hover{border-color:var(--lime)}
+
+/* retos */
+.xpbar{display:flex;flex-direction:column;gap:6px}
+.reto{border-radius:16px;border:1px solid var(--line);background:var(--card);padding:14px;display:flex;gap:12px;align-items:center;text-align:left;cursor:pointer;width:100%}
+.reto:hover{border-color:var(--violet)}
+.reto.done{opacity:.75}
+.reto-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.reto-t b{font-size:15px}
+.reto-t span{font-size:13px;color:var(--muted)}
+.xp{padding:5px 10px;border-radius:99px;background:var(--violet-bg);color:var(--violet-soft);font-weight:700;font-size:12px;white-space:nowrap}
+.xp.got{background:var(--lime-chip);color:var(--lime)}
+.slider{display:flex;flex-direction:column;gap:8px}
+.slider-h{display:flex;justify-content:space-between;align-items:baseline}
+.slider-h b{font-family:var(--display);font-weight:800;font-size:20px}
+input[type=range]{width:100%;height:28px;cursor:pointer}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.two button{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--app);cursor:pointer;font-size:14px;font-weight:500}
+.two button[aria-pressed="true"]{border:2px solid var(--lime);background:var(--lime-bg);font-weight:700}
+.two button.right{border:2px solid var(--lime)}
+.two button.wrong{border:2px solid var(--coral);background:var(--coral-bg)}
+
+/* profile badge */
+.lvbadge{border-radius:22px;padding:18px;background:radial-gradient(120% 120% at 20% 0%,#2C3A12 0%,var(--card) 60%);border:2px solid var(--lime);display:flex;gap:16px;align-items:center}
+.hex{flex:0 0 76px;height:84px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--lime);color:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:36px}
+.hex.off{background:var(--raise);color:var(--muted)}
+.minihex{display:flex;gap:10px}
+.minihex div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.minihex .hex{flex:0 0 auto;width:40px;height:44px;font-size:18px}
+.active-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--lime);color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;align-self:flex-start}
+
+/* notification + ranking */
+.notif{position:absolute;left:10px;right:10px;top:10px;z-index:40;border-radius:20px;background:rgba(36,38,58,.97);border:1px solid #3A3D5E;box-shadow:0 18px 40px rgba(0,0,0,.5);padding:12px 14px;display:flex;gap:12px;align-items:flex-start;text-align:left;cursor:pointer;width:auto}
+.notif .logo{flex:0 0 38px;font-size:15px}
+.notif-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.notif-h{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.notif-t b{font-size:14px}
+.notif-t span{font-size:13px;color:var(--soft)}
+.x{position:absolute;right:6px;bottom:6px;width:32px;height:32px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end}
+.pod{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
+.pod .av{width:48px;height:48px;border-radius:50%;background:var(--raise);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:18px;border:3px solid var(--raise)}
+.pod.me .av{border-color:var(--lime);color:var(--lime)}
+.pod .nm{font-size:13px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod .step{width:100%;border-radius:14px 14px 6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:10px;color:var(--ink);font-family:var(--display);font-weight:800;font-size:26px}
+.pod .val{font-size:12px;color:var(--soft)}
+.mvup{color:var(--lime);font-weight:700;font-size:12px}
+.mvdn{color:var(--coral-text);font-weight:700;font-size:12px}
+.mveq{color:var(--muted);font-size:12px}
+.back{background:none;border:0;color:var(--soft);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:14px;padding:4px 0;align-self:flex-start;min-height:44px}
+@media (prefers-reduced-motion:no-preference){
+  .screen>*{animation:rise .25s ease both}@keyframes rise{from{transform:translateY(6px);opacity:.4}to{transform:none;opacity:1}}
+  .notif{animation:drop .45s cubic-bezier(.2,.9,.3,1.2) both}@keyframes drop{from{transform:translateY(-120%)}to{transform:none}}
+}
+
+/* ---- versión móvil independiente ---- */
+html,body{height:100%}
+body{padding:0;background:var(--app);overflow:hidden}
+.stage{max-width:none;display:block;height:100%}
+.phone{max-width:480px;width:100%;height:100%;min-height:0;margin:0 auto;border:0;border-radius:0;box-shadow:0 0 0 1px var(--line)}
+.screen{padding:calc(20px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 24px max(18px,env(safe-area-inset-left,0px));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tabs{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.notif{top:calc(10px + env(safe-area-inset-top,0px))}
+@media (max-width:460px){body{padding-block:0}.phone{height:100%;overflow:hidden;background:var(--app)}.screen{overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 24px}.tabs{position:static;margin-inline:0}.notif{position:absolute}}
+.reset{align-self:center;background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:8px}
+</style>
+
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <main class="screen" id="screen" aria-live="polite"></main>
+    <nav class="tabs" id="tabs" aria-label="Navegación de la app" hidden>
+      <button class="tab" data-tab="liga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Liga</button>
+      <button class="tab" data-tab="retos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Retos</button>
+      <button class="tab" data-tab="banco"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v10a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14" r="1"/></svg>Banco</button>
+      <button class="tab" data-tab="perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</button>
+    </nav>
+  </div>
+</div>
+
+<script id="engine">
+/* ---------- Simulation engine (same rules as the decision trees; portfolio carries over between weeks) ---------- */
+const IND=['ahorro','imprev','inv','conoc'];
+const rhe=v=>{const f=Math.floor(v),d=v-f;if(Math.abs(d-.5)<1e-9)return f%2===0?f:f+1;return Math.round(v);};
+const W={ahorro:.25,imprev:.25,inv:.30,conoc:.20};
+const IND_NAME={ahorro:'Ahorro',imprev:'Imprevistos',inv:'Inversión',conoc:'Conocimiento'};
+const ALL=['cash','ahorro','fondo','repsol','aereo','nvidia','apple','samsung','hype'];
+const ASSET_NAME={cash:'Efectivo',ahorro:'Cuenta de ahorro',fondo:'Fondo indexado global',repsol:'Repsol',aereo:'Aerolíneas (IAG y Ryanair)',nvidia:'Nvidia',apple:'Apple',samsung:'Samsung',hype:'Acción de la influencer'};
+const ASSET_COLOR={cash:'#F2F2F7',ahorro:'#C6F432',fondo:'#8B7CFF',repsol:'#FF8A65',aereo:'#5EC8FF',nvidia:'#FFD166',apple:'#9AA0B8',samsung:'#7FD6C2',hype:'#FF6FAE'};
+const clamp=v=>Math.max(0,Math.min(100,v));
+const newP=()=>{const a={};ALL.forEach(k=>a[k]=0);a.cash=10000;return {a,deuda:0,flags:[],score:{ahorro:50,imprev:50,inv:50,conoc:50}};};
+const total=s=>Object.values(s.a).reduce((x,y)=>x+y,0)-s.deuda;
+const mv=(s,src,dst,amt)=>{const v=amt==null?s.a[src]:Math.max(0,Math.min(s.a[src],amt));s.a[src]-=v;s.a[dst]+=v;};
+const pay=(s,amt,order=['cash','ahorro','fondo'])=>{const ord=order.concat(ALL.filter(k=>!order.includes(k)));for(const k of ord){const t=Math.min(s.a[k],amt);s.a[k]-=t;amt-=t;if(amt<=0)return;}s.deuda+=amt;};
+const mkt=(s,m)=>{for(const k in m)s.a[k]*=1+m[k];};
+const earn=(s,x)=>{s.a.cash+=x;};
+const debt=x=>s=>{s.deuda+=x;};
+const half=(assets,to)=>s=>assets.forEach(k=>mv(s,k,to,s.a[k]*.5));
+const sell=(assets,to='cash')=>s=>assets.forEach(k=>mv(s,k,to));
+const N=()=>{};
+/* Monday buys scale with the portfolio and draw on liquid money first (identical to the trees in week 1) */
+const buy=(dst,base)=>s=>{let amt=base*total(s)/10000;for(const k of ['cash','ahorro','fondo']){if(k===dst)continue;const t=Math.min(s.a[k],amt);s.a[k]-=t;s.a[dst]+=t;amt-=t;if(amt<=1e-6)break;}};
+const O=(t,fn,d,desc,descP)=>({t,fn,d,desc,descP:descP||desc});
+const idxOf=sc=>rhe(IND.reduce((a,k)=>a+sc[k]*W[k],0));
+
+const SCENARIOS={
+ opep:{
+  id:'opep',nivel:'I',name:'La semana de la OPEP',
+  problem:'La OPEP recorta el petróleo que vende a Europa',
+  real:'Inspirado en el embargo de 1973: los países árabes de la OPEP cortaron el suministro a Occidente y el barril se multiplicó por cuatro.',
+  bots:['AAABBAA','BBABBBB','CCBBAAA','CBABBBC','AAAAACB'],
+  days:[
+   {opts:[O('Apostar por el petróleo',buy('repsol',6000),{inv:-15},'6.000 C en Repsol · riesgo alto','60 % de tu cartera en Repsol · riesgo alto'),
+          O('Diversificar y proteger',s=>{buy('fondo',4000)(s);buy('ahorro',4000)(s);},{inv:20,ahorro:10},'4.000 C fondo indexado + 4.000 C cuenta de ahorro · riesgo bajo','40 % fondo indexado + 40 % cuenta de ahorro · riesgo bajo'),
+          O('Comprar aerolíneas, que están baratas',buy('aereo',6000),{inv:-15},'6.000 C en IAG y Ryanair · riesgo alto','60 % de tu cartera en IAG y Ryanair · riesgo alto')],
+    tip:'Concentrar todo en una empresa multiplica el riesgo. Diversificar reparte el golpe.'},
+   {info:'El barril sube un 25 %: Repsol +15 %, aerolíneas −12 %, fondo −3 %',short:'Petróleo +25 %',pre:s=>mkt(s,{repsol:.15,aereo:-.12,fondo:-.03}),
+    opts:[O('Comprar 2.000 C más de Repsol',s=>mv(s,'cash','repsol',2000),{inv:-10}),O('Mantener',N,{inv:5}),O('Vender todo por miedo',sell(['repsol','aereo','fondo']),{inv:-25,conoc:-5})],
+    tip:'Vender justo después de una caída convierte una pérdida temporal en definitiva.'},
+   {info:'Se te rompe el portátil antes de una entrega',short:'Portátil roto',
+    opts:[O('Repararlo (220 C)',s=>{s.flags.push('pc');pay(s,220);},{imprev:15}),O('Uno nuevo a plazos (850 C)',s=>{s.flags.push('pc');s.deuda+=850;},{imprev:-20,ahorro:-10}),O('Pedir uno prestado',N,{imprev:5})],
+    tip:'Financiar sale caro: 850 C por un portátil que costaba 220 C arreglar. Y si no tienes equipo, el sábado no cobras el encargo.'},
+   {info:'Rumor: Arabia Saudí podría negociar con Europa. Repsol −3 %, aerolíneas +4 %',short:'Rumor de acuerdo',pre:s=>mkt(s,{repsol:-.03,aereo:.04}),
+    opts:[O('Pasarme a aerolíneas',s=>mv(s,'repsol','aereo'),{inv:-5,conoc:-5}),O('Mantener y esperar',N,{inv:5}),O('Pasar la mitad a ahorro',half(['repsol','aereo','fondo'],'ahorro'),{inv:5})],
+    tip:'Actuar por un rumor es apostar. Esperar a la confirmación reduce el riesgo.'},
+   {info:'Acuerdo confirmado: Repsol −10 %, aerolíneas +14 %, fondo +4 %',short:'Acuerdo confirmado',pre:s=>mkt(s,{repsol:-.10,aereo:.14,fondo:.04}),
+    opts:[O('Vender todo y asegurar',sell(['repsol','aereo','fondo']),{}),O('Mantener',N,{inv:5}),O('Pasar el efectivo al fondo',s=>mv(s,'cash','fondo'),{inv:10})],
+    tip:'Cuando una noticia es pública, el precio suele haberse movido antes de que reacciones.'},
+   {info:'Plan de playa con amigos: 180 C. Si tienes portátil, cobras 300 C del encargo',short:'Encargo cobrado',pre:s=>{if(s.flags.includes('pc'))earn(s,300);},
+    opts:[O('Ir (180 C)',s=>pay(s,180),{ahorro:-5}),O('Plan low cost (60 C)',s=>pay(s,60),{ahorro:10}),O('Quedarme en casa',N,{ahorro:5})],
+    tip:'Gastar en ocio no es malo: lo importante es que quepa en tu presupuesto.'},
+   {info:'Cierre: la inflación resta un 1 % al efectivo; ahorro +0,3 %, fondo +1 %',short:'Cierre semanal',post:s=>mkt(s,{cash:-.01,ahorro:.003,fondo:.01}),
+    opts:[O('Dejarlo todo igual',N,{ahorro:-5}),O('Pasar el efectivo a ahorro',s=>mv(s,'cash','ahorro'),{ahorro:10}),O('Mitad del efectivo al fondo',s=>mv(s,'cash','fondo',s.a.cash*.5),{inv:10})],
+    tip:'El efectivo parado pierde valor con la inflación. Una cuenta remunerada lo protege.'}
+  ]},
+ ia:{
+  id:'ia',nivel:'A',name:'La semana de la IA',
+  problem:'Nvidia presenta un chip que multiplica la capacidad de la IA',
+  real:'Inspirado en el auge de la IA de 2023-2024, cuando Nvidia multiplicó su valor, y en la escasez de chips de 2021.',
+  bots:['AAABACC','ABCCBCB','BBCCBBB','CAAAAAA','BCCBCBB'],
+  days:[
+   {opts:[O('Todo a la IA',buy('nvidia',7000),{inv:-20},'7.000 C en Nvidia · riesgo alto','70 % de tu cartera en Nvidia · riesgo alto'),
+          O('Fondo indexado y ahorro',s=>{buy('fondo',6000)(s);buy('ahorro',3000)(s);},{inv:20,ahorro:10},'6.000 C fondo global + 3.000 C ahorro · riesgo bajo','60 % fondo global + 30 % ahorro · riesgo bajo'),
+          O('Esperar en efectivo',N,{inv:-5},'No invertir hasta ver qué pasa','No mover nada hasta ver qué pasa')],
+    tip:'Una buena noticia no garantiza que el precio siga subiendo: puede que ya esté descontada.'},
+   {info:'Euforia en bolsa: Nvidia +20 %, fondo +2 %',short:'Euforia IA',pre:s=>mkt(s,{nvidia:.20,fondo:.02}),
+    opts:[O('Comprar 2.000 C de Nvidia',s=>mv(s,'cash','nvidia',2000),{inv:-10,conoc:-5}),O('Mantener',N,{inv:5}),O('Vender la mitad de Nvidia',half(['nvidia'],'cash'),{inv:10,conoc:5})],
+    tip:'Comprar tras una subida fuerte por miedo a quedarte fuera suele significar comprar caro.'},
+   {info:'Una influencer jura que una acción «va a triplicarse»',short:'Consejo de influencer',
+    opts:[O('Invertir 2.000 C',s=>mv(s,'cash','hype',2000),{inv:-15,conoc:-15}),O('Invertir 200 C',s=>mv(s,'cash','hype',200),{inv:-5}),O('Investigar antes',N,{conoc:15})],
+    tip:'Si alguien promete triplicar tu dinero, investiga primero. Las promesas fáciles suelen ser trampas.'},
+   {info:'Terremoto en Taiwán: TSMC cierra. Nvidia −15 %, Apple −10 %, Samsung +10 %, fondo −3 %',short:'Terremoto en Taiwán',pre:s=>mkt(s,{nvidia:-.15,apple:-.10,samsung:.10,fondo:-.03}),
+    opts:[O('Vender Nvidia por miedo',sell(['nvidia']),{inv:-20,conoc:-5}),O('Mantener',N,{inv:5}),O('Pasar media Nvidia al fondo',half(['nvidia'],'fondo'),{inv:15})],
+    tip:'Una empresa depende de sus proveedores: Nvidia necesita los chips que fabrica TSMC.'},
+   {info:'El BCE sube los tipos: Nvidia −10 %, fondo −2 %. La acción de la influencer cae un 60 %',short:'Subida de tipos',pre:s=>mkt(s,{nvidia:-.10,fondo:-.02,hype:-.60}),
+    opts:[O('Comprar Nvidia barata (2.000 C)',s=>mv(s,'cash','nvidia',2000),{}),O('Mantener',N,{inv:5}),O('Pasar el efectivo a ahorro',s=>mv(s,'cash','ahorro'),{ahorro:10})],
+    tip:'Cuando suben los tipos, las tecnológicas suelen bajar y el ahorro remunerado paga más.'},
+   {info:'Cobras tu primera nómina de prácticas: 900 C',short:'Nómina de prácticas',pre:s=>earn(s,900),
+    opts:[O('Gastar 700 C',s=>pay(s,700),{ahorro:-10}),O('Regla 50/30/20',s=>{pay(s,720);mv(s,'cash','ahorro',180);},{ahorro:15}),O('Invertir casi todo',s=>{pay(s,450);mv(s,'cash','fondo',450);},{ahorro:5,inv:5})],
+    tip:'Regla 50/30/20: la mitad para necesidades, un 30 % para ocio y un 20 % para ahorro.'},
+   {info:'Rebote: Nvidia +8 %, fondo +1 %, ahorro +0,4 %, efectivo −0,5 %',short:'Rebote',post:s=>mkt(s,{nvidia:.08,fondo:.01,ahorro:.004,cash:-.005}),
+    opts:[O('Dejarlo todo igual',N,{}),O('Máximo 30 % por empresa',s=>{const t=total(s);['nvidia','apple','samsung','hype'].forEach(k=>{const ex=s.a[k]-.3*t;if(ex>0)mv(s,k,'fondo',ex);});},{inv:15}),O('Todo el efectivo a Nvidia',s=>mv(s,'cash','nvidia'),{inv:-15})],
+    tip:'Limitar el peso de una sola empresa en tu cartera reduce el daño de un mal día.'}
+  ]},
+ inflacion:{
+  id:'inflacion',nivel:'B',name:'La semana de la inflación',
+  problem:'La inflación llega al 10 % en alimentos y transporte',
+  real:'Inspirado en 2022, cuando la inflación en España superó el 10 % en verano y el BCE empezó a subir los tipos de interés.',
+  bots:['AACAACB','BBCBABB','BCABBAA','CBACCAA','BACAACB'],
+  days:[
+   {opts:[O('Todo en efectivo, por si acaso',N,{ahorro:-5,conoc:-5},'Sin tocar nada'),
+          O('Colchón y fondo indexado',s=>{buy('ahorro',3000)(s);buy('fondo',6000)(s);},{imprev:20,inv:15},'3.000 C de emergencia + 6.000 C fondo','30 % de emergencia + 60 % fondo indexado'),
+          O('Comprar antes de que suba',s=>pay(s,1500),{ahorro:-15},'1.500 C en compras adelantadas')],
+    tip:'Con inflación alta, el dinero quieto pierde poder de compra. Un colchón de emergencia sigue siendo clave.'},
+   {info:'El BCE sube los tipos: la cuenta de ahorro paga más; fondo −4 %',short:'Subida de tipos',pre:s=>mkt(s,{fondo:-.04}),
+    opts:[O('Pasar 5.000 C a cuenta de ahorro',s=>mv(s,'cash','ahorro',5000),{ahorro:10,conoc:5}),O('Mantener',N,{}),O('Vender el fondo por miedo',sell(['fondo']),{inv:-20})],
+    tip:'Cuando el BCE sube los tipos, las cuentas de ahorro remuneradas pagan más.'},
+   {info:'«Compra ahora, paga después»: un móvil de 900 C en cuotas',short:'Oferta de móvil',
+    opts:[O('Aceptar (990 C en total)',debt(990),{imprev:-10,conoc:-10}),O('Pagar al contado',s=>pay(s,900),{ahorro:-5}),O('Seguir con mi móvil',N,{ahorro:10})],
+    tip:'«Compra ahora, paga después» es un préstamo: aquí pagas 90 C de más.'},
+   {info:'Tus gastos fijos suben un 10 %: este mes pagas 110 C más',short:'Gastos fijos +10 %',
+    opts:[O('Recortar ocio',N,{ahorro:10}),O('Tirar del fondo de emergencia',s=>pay(s,110,['ahorro','cash','fondo']),{imprev:10}),O('Préstamo rápido (135 C)',debt(135),{imprev:-15})],
+    tip:'Una subida de gastos fijos se compensa recortando gastos variables, no con préstamos rápidos.'},
+   {info:'Aparece un cargo de 95 C que no reconoces',short:'Cargo desconocido',pre:s=>pay(s,95),
+    opts:[O('Avisar al banco',s=>earn(s,95),{conoc:15}),O('Esperar',N,{}),O('Ignorarlo',s=>pay(s,95),{conoc:-15})],
+    tip:'Revisa tus movimientos: avisar pronto al banco suele permitir recuperar un cargo fraudulento.'},
+   {info:'Festival con tus amigos: 160 C',short:'Festival',
+    opts:[O('Ir (160 C)',s=>pay(s,160),{ahorro:-5}),O('Entrada de reventa (90 C)',s=>pay(s,90),{ahorro:5}),O('No ir',N,{ahorro:5})],
+    tip:'Ir más barato a un plan que te importa suele ser mejor que gastar de más o renunciar a todo.'},
+   {info:'Cierre: el efectivo pierde un 0,8 % por inflación; ahorro +0,4 %, fondo +1 %',short:'Cierre semanal',post:s=>mkt(s,{cash:-.008,ahorro:.004,fondo:.01}),
+    opts:[O('Dejarlo todo igual',N,{ahorro:-5}),O('Pasar el efectivo a ahorro',s=>mv(s,'cash','ahorro'),{ahorro:10}),O('Mitad del efectivo al fondo',s=>mv(s,'cash','fondo',s.a.cash*.5),{inv:10})],
+    tip:'Mover el efectivo sobrante a una cuenta remunerada cada semana protege contra la inflación.'}
+  ]}
+};
+
+/* runs one week on portfolio P (mutated). ops: manual moves recorded at decision index `at` */
+function runWeek(P,sc,choices,ops,preNext,wi,vals,ledger){
+  P.flags=[];
+  const opsAt=i=>ops.filter(o=>o.at===i).forEach(o=>{mv(P,o.from,o.to,o.amt);if(ledger)ledger.push({w:wi,day:Math.min(i,6),kind:'op',label:o.label,delta:0});});
+  choices.forEach((ch,i)=>{
+    const d=sc.days[i],o=d.opts['ABC'.indexOf(ch)];
+    const v0=total(P);if(d.pre)d.pre(P);const v1=total(P);opsAt(i);o.fn(P);const v2=total(P);if(d.post)d.post(P);const v3=total(P);
+    for(const k in o.d)P.score[k]=clamp(P.score[k]+o.d[k]);
+    if(vals)vals.push(v3);
+    if(ledger){const nd=v1-v0+v3-v2;if(Math.abs(nd)>=.5)ledger.push({w:wi,day:i,kind:'news',label:d.short||'Noticia',delta:nd});
+      ledger.push({w:wi,day:i,kind:'dec',label:o.t,delta:v2-v1});}
+  });
+  if(choices.length<7){
+    if(preNext){const d=sc.days[choices.length];const v0=total(P);if(d.pre)d.pre(P);const nd=total(P)-v0;
+      if(ledger&&Math.abs(nd)>=.5)ledger.push({w:wi,day:choices.length,kind:'news',label:d.short||'Noticia',delta:nd});
+      if(vals&&Math.abs(nd)>=.5)vals.push(total(P));}
+    opsAt(choices.length);
+  }else opsAt(7);
+}
+function profileOf(r){const sc=r.score;
+  if((sc.inv<=30&&(sc.imprev<=40||sc.conoc<=40))||(sc.imprev<=30&&sc.conoc<=40))return 'Impulsivo';
+  if(sc.inv<45)return 'Especulador';
+  if(r.idx>=65)return 'Equilibrado';
+  if(sc.ahorro>=70)return 'Conservador';
+  return 'En progreso';}
+</script>
+
+<script>
+/* ---------- App ---------- */
+const DAYS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const DAY1=['L','M','X','J','V','S','D'];
+const BOTS=['marcos.r','anap_99','jorge_m','sara.lz','pablo_g'];
+const LEVELS=['B','I','A'];
+const LEVEL={B:{n:'Básico',t:'Empiezas por lo esencial: ahorro, presupuesto y fondos indexados.',assets:'Efectivo, cuenta de ahorro y fondo indexado'},
+             I:{n:'Intermedio',t:'Ya distingues riesgos. Vas a trabajar diversificación, tipos de interés y empresas.',assets:'Lo anterior más bonos y acciones'},
+             A:{n:'Avanzado',t:'Dominas lo básico. Te esperan divisas, deuda pública y burbujas.',assets:'Lo anterior más oro, Bitcoin y divisas'}};
+const XP_LEVEL=200;
+const QUIZ=[
+ {q:'Tienes 500 C ahorrados y te ofrecen algo que promete un 20 % en un mes. ¿Qué haces?',o:[['Lo meto todo, es una oportunidad',0],['Meto una parte para probar',1],['Desconfío: tanta rentabilidad implica mucho riesgo',2],['No sé qué haría',0]]},
+ {q:'Tu cuenta paga un 0 % y la inflación es del 5 %. Dentro de un año, con ese dinero podrás comprar…',o:[['Más que hoy',0],['Lo mismo que hoy',0],['Menos que hoy',2],['No lo sé',0]]},
+ {q:'Un viaje cuesta 700 C al contado o 6 cuotas de 130 C. ¿Cuánto pagas de más a plazos?',o:[['Nada, es lo mismo',0],['80 C',2],['130 C',0],['No lo sé',0]]},
+ {q:'¿Qué es un fondo indexado?',o:[['Un fondo que replica un índice con muchas empresas',2],['Una cuenta de ahorro sin riesgo',0],['Una criptomoneda',0],['No lo sé',0]]},
+ {q:'¿Qué significa diversificar?',o:[['Invertir todo en la empresa que más sube',0],['Repartir el dinero entre activos distintos',2],['Cambiar de banco cada año',0],['No lo sé',0]]}
+];
+const RETOS=[
+ {id:'nomina',type:'reparto',title:'Primera nómina de prácticas',sub:'Te ingresan 900 C. ¿Cómo los repartes?',amt:900,max:50},
+ {id:'concurso',type:'reparto',title:'Ganas 600 C en un concurso',sub:'Dinero extra inesperado. ¿Qué haces con él?',amt:600,max:50},
+ {id:'capricho',type:'capricho',title:'¿Necesidad o capricho?',sub:'Clasifica 5 gastos del mes',max:40,
+  items:[['Abono de transporte para ir a clase',0],['Zapatillas de edición limitada',1],['Factura de la luz del piso',0],['Tercera plataforma de series',1],['Libros de la universidad',0]]},
+ {id:'trampa',type:'trampa',title:'Detecta la trampa',sub:'¿Qué oferta sale más cara en realidad?',max:40,
+  qs:[{q:'Gimnasio durante un año',o:['360 C pagando el año entero','40 C al mes'],c:1,why:'40 C × 12 meses = 480 C: pagas 120 C más por la flexibilidad.'},
+      {q:'Un móvil nuevo',o:['900 C al contado','«Paga después»: 6 cuotas de 165 C'],c:1,why:'6 × 165 C = 990 C: la financiación te cuesta 90 C.'}]}
+];
+const SPLIT_KEYS=['nec','ocio','aho'];
+const SPLIT_NAME={nec:'Necesario',ocio:'Ocio',aho:'Ahorro'};
+const SPLIT_COLOR={nec:'#F2F2F7',ocio:'#8B7CFF',aho:'#C6F432'};
+const TARGET={nec:50,ocio:30,aho:20};
+
+const FRESH=()=>({screen:'registro',user:'lucia_fl',email:'',qi:0,qsel:null,qscore:0,level:'I',shownLevel:1,
+  weeks:[],sc:null,choices:[],sel:null,phase:'decide',closed:false,notif:false,tab:'liga',
+  ops:[],goal:{name:'Viaje fin de curso',amt:5000},panel:null,allMoves:false,
+  retos:{},reto:null,split:[50,30,20],cap:[],tr:[]});
+const st=FRESH();
+const $screen=document.getElementById('screen'),$tabs=document.getElementById('tabs'),$phone=document.getElementById('phone');
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=v=>rhe(v).toLocaleString('es-ES',{useGrouping:'always'});
+const cur=v=>fmt(v)+' C';
+const signed=v=>(v>=0?'+':'−')+cur(Math.abs(v));
+const pctOf=(v,base)=>{const p=v/base*100;return (p>=0?'+':'−')+Math.abs(p).toLocaleString('es-ES',{maximumFractionDigits:1,minimumFractionDigits:1})+' %';};
+const cls=v=>v>=0?'up':'down';
+const dchips=d=>{const ks=Object.keys(d);if(!ks.length)return '<span class="chip">Sin efecto en tu salud financiera</span>';
+  return ks.map(k=>`<span class="chip ${d[k]>0?'pos':'neg'}">${IND_NAME[k]} ${d[k]>0?'+':'−'}${Math.abs(d[k])}</span>`).join('');};
+const SC=()=>SCENARIOS[st.sc];
+const weekNo=()=>st.weeks.length+1;
+const ICON={
+ check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>',
+ alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+ trophy:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+ swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>',
+ plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+ flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>',
+ plane:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M4 15l4-1 9-6a2 2 0 0 1 3 1l-1 2-12 6-3-2z"/><path d="M9 11L6 8l2-1 4 2"/></svg>',
+ news:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+ dec:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
+ op:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>',
+ back:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+ spark:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>'
+};
+
+/* ---------- state helpers ---------- */
+function playerSim(preNext,choicesOverride){
+  const P=newP(),vals=[10000],ledger=[],weekStart=[];
+  st.weeks.forEach((wk,wi)=>{weekStart.push(total(P));runWeek(P,SCENARIOS[wk.sc],wk.choices,st.ops.filter(o=>o.w===wi),false,wi,vals,ledger);});
+  const cw=st.weeks.length;weekStart.push(total(P));
+  if(st.sc)runWeek(P,SCENARIOS[st.sc],choicesOverride||st.choices,st.ops.filter(o=>o.w===cw),preNext,cw,vals,ledger);
+  return {P,vals,ledger,value:total(P),score:P.score,idx:idxOf(P.score),weekStartVal:weekStart[cw]};
+}
+function botSim(i,n,preNext,includeCurrent=true){
+  const P=newP();
+  st.weeks.forEach(wk=>runWeek(P,SCENARIOS[wk.sc],SCENARIOS[wk.sc].bots[i].split(''),[],false,0));
+  const start=total(P);
+  if(includeCurrent&&st.sc)runWeek(P,SC(),SC().bots[i].slice(0,n).split(''),[],preNext,0);
+  return {value:total(P),idx:idxOf(P.score),start};
+}
+function league(preNext,includeCurrent=true){
+  const n=st.choices.length;
+  const rows=BOTS.map((b,i)=>{const r=botSim(i,n,preNext,includeCurrent);return {name:b,value:r.value,idx:r.idx,start:r.start};});
+  let me;
+  if(includeCurrent){const r=playerSim(preNext);me={name:st.user,value:r.value,idx:r.idx,start:r.weekStartVal,me:true};}
+  else{const saved=st.sc;st.sc=null;const r=playerSim(false);st.sc=saved;me={name:st.user,value:r.value,idx:r.idx,start:r.value,me:true};}
+  rows.unshift(me);
+  const byV=[...rows].sort((a,b)=>b.value-a.value);byV.forEach((r,i)=>r.rv=i+1);
+  const byI=[...rows].sort((a,b)=>b.idx-a.idx||b.value-a.value);byI.forEach((r,i)=>r.ri=i+1);
+  return byV;
+}
+function xpTotal(){
+  const decisions=st.weeks.reduce((a,w)=>a+w.choices.length,0)+st.choices.length;
+  const weeksDone=st.weeks.length+(st.choices.length===7?1:0);
+  const retos=Object.values(st.retos).reduce((a,r)=>a+r.xp,0);
+  return decisions*10+weeksDone*40+retos;
+}
+function levelInfo(){
+  const xp=xpTotal(),base=LEVELS.indexOf(st.level);
+  const li=Math.min(2,base+Math.floor(xp/XP_LEVEL));
+  return {xp,li,key:LEVELS[li],name:LEVEL[LEVELS[li]].n,into:li===2?XP_LEVEL:xp%XP_LEVEL,next:li<2?LEVEL[LEVELS[li+1]].n:null};
+}
+function checkLevelUp(){const L=levelInfo();if(L.li>st.shownLevel){st.shownLevel=L.li;setTimeout(()=>toast(`¡Subes a nivel ${L.name}! Insignia activada en tu perfil`),60);}}
+
+/* ---------- onboarding screens ---------- */
+const V={};
+V.registro=()=>`
+ <div class="brand"><div class="logo" aria-hidden="true">FL</div><div class="word">Finan League</div></div>
+ <h2 class="big">Tu primera liga <span class="up">financiera</span>.</h2>
+ <p class="muted">Compite con tus amigos gestionando 10.000 Curritos y aprende a decidir mejor con tu dinero real.</p>
+ <div class="card" style="flex-direction:row;align-items:center;gap:14px">
+   <div style="flex:0 0 52px;height:52px;border-radius:12px;background:var(--violet);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="var(--ink)" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div>
+   <div><b>Mira cómo funciona</b><div class="muted" style="font-size:13px">Vídeo explicativo de 45 s · en producción</div></div>
+ </div>
+ <form id="reg" style="display:flex;flex-direction:column;gap:14px">
+   <div class="field"><label for="f-user">Username</label><div class="at"><span aria-hidden="true">@</span><input id="f-user" value="${esc(st.user)}" autocomplete="off" required maxlength="20" pattern="[A-Za-z0-9._]{3,20}" title="De 3 a 20 letras, números, puntos o guiones bajos"></div><span class="muted" style="font-size:12px">Es el nombre que verán en tu liga.</span></div>
+   <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" placeholder="tu@email.com" value="${esc(st.email)}"></div>
+   <div class="field"><label for="f-pass">Contraseña</label><input id="f-pass" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>
+   <button class="btn" type="submit">Crear cuenta</button>
+ </form>
+ <p class="disclaimer">Prototipo: no se guarda ni se envía ningún dato.</p>`;
+
+V.quiz=()=>{const q=QUIZ[st.qi];return `
+ <div class="top"><span class="eyebrow">Prueba de nivel</span><span class="muted num" style="font-size:14px">Pregunta ${st.qi+1} de ${QUIZ.length}</span></div>
+ <div class="bar"><i style="width:${(st.qi+1)/QUIZ.length*100}%"></i></div>
+ <h2 style="font-size:24px;line-height:1.15">${q.q}</h2>
+ <div style="display:flex;flex-direction:column;gap:10px">
+  ${q.o.map((o,i)=>`<button class="opt" data-act="qpick" data-i="${i}" aria-pressed="${st.qsel===i}"><span class="key">${'ABCD'[i]}</span><span class="opt-t"><b>${o[0]}</b></span></button>`).join('')}
+ </div>
+ <div class="tip"><span>El nivel es orientativo, no limitante: solo marca tu punto de partida.</span></div>
+ <button class="btn" data-act="qnext" ${st.qsel==null?'disabled':''} style="margin-top:auto">${st.qi<QUIZ.length-1?'Siguiente':'Ver mi nivel'}</button>`;};
+
+V.nivel=()=>{const L=LEVEL[st.level];return `
+ <span class="eyebrow" style="text-align:center">Resultado del quiz · ${st.qscore} de 10 puntos</span>
+ <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+   <div class="hex" style="width:112px;height:124px;flex:none;font-size:56px">${st.level}</div>
+   <h2 style="font-size:30px">Nivel ${L.n}</h2>
+   <p class="muted" style="text-align:center;max-width:300px">${L.t}</p>
+ </div>
+ <div class="lvl">${LEVELS.map(k=>`<div class="${k===st.level?'on':''}"><b>${k}</b>${LEVEL[k].n}</div>`).join('')}</div>
+ <div class="card"><span class="eyebrow">Activos desbloqueados</span><span>${L.assets}</span></div>
+ <p class="muted" style="text-align:center;font-size:13px">Ganas XP con los retos individuales y subes de nivel. Nada se bloquea.</p>
+ <button class="btn" data-act="go" data-to="bienvenida" style="margin-top:auto">Continuar</button>`;};
+
+V.bienvenida=()=>`
+ <div><div class="muted">Hola, @${esc(st.user)}</div><h2 class="big" style="margin-top:6px">Bienvenida a tu primera temporada</h2></div>
+ <div class="hero-money"><span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Tu capital inicial</span><span class="amt num">10.000 C</span><span style="font-weight:500">Curritos: la moneda de Finan League. Dinero ficticio, decisiones reales.</span></div>
+ <div>
+  <span class="eyebrow">Cómo se juega</span>
+  <div class="row"><span><b>El lunes se fija un problema</b><br><span class="muted">Toda la liga ve la misma noticia y elige entre 3 soluciones</span></span></div>
+  <div class="row"><span><b>Cada día, información nueva</b><br><span class="muted">7 decisiones a la semana. Tu cartera se mantiene de una semana a otra</span></span></div>
+  <div class="row"><span><b>Retos individuales: gana XP</b><br><span class="muted">Sube de nivel y activa tus insignias</span></span></div>
+  <div class="row"><span><b>12 semanas de temporada</b><br><span class="muted">Gana quien combine más patrimonio y mejor salud financiera</span></span></div>
+ </div>
+ <button class="btn" data-act="go" data-to="ligas" style="margin-top:auto">Elegir mi liga</button>`;
+
+V.ligas=()=>{const rec={B:'inflacion',I:'opep',A:'ia'}[st.level];const played=new Set(st.weeks.map(w=>w.sc));const inProgress=st.sc&&st.choices.length>0&&st.choices.length<7;return `
+ <h2 class="big">${st.weeks.length?'Semana '+weekNo()+' de 12':'Elige cómo jugar'}</h2>
+ ${st.weeks.length?`<div class="card" style="gap:4px"><span class="eyebrow">Tu cartera sigue en juego</span><span class="num">Empiezas la semana con <b>${cur(playerSim(false).value)}</b> repartidos como acabaste la anterior.</span></div>`:`
+ <div class="card news" style="gap:10px">
+   <b style="font-family:var(--display);font-size:20px">Crea una liga con amigos</b>
+   <p style="font-weight:500;font-size:14px">Comparte el código y empezad la temporada a la vez.</p>
+   <div style="display:flex;gap:10px"><div class="code">FNL-482</div><button class="ghost" data-act="copy" style="background:var(--fg);color:var(--ink);border:0;min-height:48px">Copiar</button></div>
+ </div>
+ <div class="card" style="gap:4px"><b>O únete a una liga abierta</b><span class="muted" style="font-size:14px">Liga Valencia Sub-25 · 18/20 jugadores · anónima</span></div>`}
+ ${inProgress?`<button class="btn alt" data-act="resume">Seguir con la semana en curso</button>`:''}
+ <span class="eyebrow">Elige el problema de la semana</span>
+ ${['inflacion','opep','ia'].map(id=>{const s=SCENARIOS[id];return `<button class="sc-card" data-act="pickSc" data-id="${id}">
+   <span style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">Nivel ${LEVEL[s.nivel].n.toLowerCase()}</span>${id===rec&&!played.has(id)?'<span class="badge rec">Recomendada para ti</span>':''}${played.has(id)?'<span class="badge">Ya jugada</span>':''}</span>
+   <b>${s.name}</b><span class="muted" style="font-size:13px">${s.problem}</span></button>`;}).join('')}
+ ${inProgress?'<p class="disclaimer">Si eliges otro problema, la semana en curso se reinicia.</p>':''}`;};
+
+/* ---------- liga tab ---------- */
+function header(r){const n=st.choices.length;const dayIdx=st.phase==='result'?n-1:n;return `
+ <div class="top">
+   <div><div class="muted" style="font-size:13px">Liga Valencia Sub-25 · Semana ${weekNo()} de 12</div>
+   <div style="font-family:var(--display);font-weight:800;font-size:21px">${DAYS[dayIdx]} · Decisión ${dayIdx+1} de 7</div></div>
+   <div><div class="money num">${cur(r.value)}</div><div class="num ${cls(r.value-10000)}" style="font-size:12px;font-weight:700;text-align:right">${pctOf(r.value-10000,10000)}</div></div>
+ </div>
+ <div class="prog" aria-label="Día ${dayIdx+1} de 7">${DAYS.map((d,i)=>`<i class="${i<dayIdx?'done':i===dayIdx?'now':''}"></i>`).join('')}</div>`;}
+
+function rankCard(preNext){const lg=league(preNext);const me=lg.find(x=>x.me);
+  return `<div class="card"><div class="top"><b style="font-size:14px">Clasificación de la liga</b><span class="muted num" style="font-size:13px">Vas ${me.rv}.º de 6</span></div>
+   <div class="rank">${lg.slice(0,3).concat(me.rv>3?[me]:[]).map(x=>`<div class="rank-row ${x.me?'me':''}"><span>${x.rv}  @${esc(x.name)}${x.me?' (tú)':''}</span><span class="num">${cur(x.value)}</span></div>`).join('')}</div></div>`;}
+
+function vLiga(){
+  const sc=SC(),n=st.choices.length;
+  if(n===7&&st.closed){const r=playerSim(false);const lg=league(false);const me=lg.find(x=>x.me);return `
+    <div><div class="muted" style="font-size:13px">Liga Valencia Sub-25 · Semana ${weekNo()} de 12</div><h2 style="font-size:24px">Semana cerrada</h2></div>
+    <div class="hero-money"><span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Patrimonio</span><span class="amt num">${cur(r.value)}</span><span class="num" style="font-weight:700">${signed(r.value-r.weekStartVal)} esta semana · ${me.rv}.º de 6</span></div>
+    <button class="btn" data-act="go" data-to="informe">Ver mi informe semanal</button>
+    <button class="btn alt" data-act="go" data-to="ranking">Ver la clasificación final</button>
+    <button class="btn alt" data-act="go" data-to="ligas">Jugar la semana ${weekNo()+1}</button>`;}
+  const deciding=st.phase==='decide';
+  const di=deciding?n:n-1;const day=sc.days[di];
+  const r=playerSim(deciding);
+  const pinned=di===0?`<div class="card pin">
+     <div class="pin-h">Problema de la semana · fijado</div>
+     <b style="font-family:var(--display);font-size:20px;line-height:1.15">${sc.problem}</b>
+     <span style="color:var(--soft);font-size:13px">${st.weeks.length?'Juegas con tu cartera actual.':'Tienes 10.000 C en efectivo.'} Cada día recibirás información nueva y tomarás una decisión.</span></div>`
+   :`<div class="card pin" style="flex-direction:row;align-items:center;padding:10px 12px"><span style="font-size:13px"><b>Problema fijado:</b> ${sc.problem}</span></div>
+     <div class="card news"><span class="eyebrow">Lo nuevo de hoy</span><b style="font-family:var(--display);font-size:19px;line-height:1.15">${day.info}</b></div>`;
+  let body;
+  if(deciding){
+    body=`<span class="eyebrow">${di===0?'Elige tu solución':'¿Qué haces hoy?'}</span>
+    <div style="display:flex;flex-direction:column;gap:10px">${day.opts.map((o,i)=>`<button class="opt" data-act="pick" data-i="${i}" aria-pressed="${st.sel===i}"><span class="key">${'ABC'[i]}</span><span class="opt-t"><b>${o.t}</b>${o.desc?`<span>${st.weeks.length&&di===0?o.descP:o.desc}</span>`:''}</span></button>`).join('')}</div>
+    <button class="btn" data-act="confirm" ${st.sel==null?'disabled':''}>Confirmar decisión ${di===0?'del lunes':'de hoy'}</button>`;
+  }else{
+    const prev=playerSim(true,st.choices.slice(0,-1)).value;
+    const o=day.opts['ABC'.indexOf(st.choices[n-1])];
+    body=`<div class="card" style="border-color:var(--lime)">
+      <span class="eyebrow" style="color:var(--lime)">Decisión registrada · +10 XP</span>
+      <b style="font-size:17px">${st.choices[n-1]} · ${o.t}</b>
+      <span class="num">Patrimonio: <b>${cur(r.value)}</b> <span class="${cls(r.value-prev)}">(${signed(r.value-prev)} hoy)</span></span>
+      <div class="chips">${dchips(o.d)}</div></div>
+    <div class="tip"><span><b>Aprende:</b> ${day.tip}</span></div>
+    <button class="btn" data-act="next">${n<7?'Pasar al '+DAYS[n].toLowerCase():'Cerrar la semana'}</button>`;
+  }
+  return header(r)+pinned+body+rankCard(deciding)+`<p class="disclaimer">Escenario simulado: las cifras no son reales ni predicciones</p>`;
+}
+
+/* ---------- banco tab ---------- */
+function bankChart(vals,ledger){
+  const w=330,h=150,padL=10,padR=10,top=30,bot=26;
+  const mn=Math.min(...vals,10000),mx=Math.max(...vals,10000);const span=Math.max(mx-mn,300);
+  const x=i=>padL+i*(w-padL-padR)/Math.max(1,vals.length-1);
+  const y=v=>top+(h-top-bot)*(1-(v-mn)/span);
+  const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  const area=`M${pts[0]} L${pts.join(' L')} L${x(vals.length-1).toFixed(1)},${h-bot} L${x(0).toFixed(1)},${h-bot} Z`;
+  // worst movement marker
+  let ann='';
+  const worst=ledger.filter(l=>l.delta<=-40).sort((a,b)=>a.delta-b.delta)[0];
+  if(worst&&vals.length>2){let k=0;let cnt=0;
+    // find point index: count points produced up to that entry
+    k=Math.min(vals.length-1,worst.w*7+worst.day+1);
+    const ax=x(k),ay=y(vals[k]);const lbl=`${worst.label.length>18?worst.label.slice(0,17)+'…':worst.label} ${signed(worst.delta)}`;
+    const anchor=ax<110?'start':ax>220?'end':'middle';const ly=ay+22<h-bot?ay+20:ay-12;
+    ann=`<circle cx="${ax}" cy="${ay}" r="5" fill="var(--coral)" stroke="var(--card)" stroke-width="2"/><text x="${ax}" y="${ly}" fill="var(--coral-text)" font-size="11" font-weight="700" text-anchor="${anchor}">${esc(lbl)}</text>`;}
+  const last=vals.length-1;
+  let labels='';
+  const weeks=Math.ceil((vals.length-1)/7);
+  if(weeks<=1){labels=DAY1.map((d,i)=>`<text x="${padL+(i+1)*(w-padL-padR)/7}" y="${h-6}" fill="var(--muted)" font-size="11" text-anchor="middle">${d}</text>`).join('');}
+  else{for(let k=0;k<weeks;k++){labels+=`<text x="${x(Math.min(last,k*7+3.5))}" y="${h-6}" fill="var(--muted)" font-size="11" text-anchor="middle">Sem ${k+1}</text>`;}}
+  return `<div class="top" style="font-size:13px"><span class="muted">Inicio <b style="color:var(--fg)" class="num">10.000 C</b></span><span class="muted">Hoy <b class="num ${cls(vals[last]-10000)}">${cur(vals[last])}</b></span></div>
+  <svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Evolución del patrimonio de 10.000 a ${fmt(vals[last])} Curritos">
+   <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C6F432" stop-opacity=".28"/><stop offset="1" stop-color="#C6F432" stop-opacity="0"/></linearGradient></defs>
+   <line x1="${padL}" x2="${w-padR}" y1="${y(10000)}" y2="${y(10000)}" stroke="var(--line)" stroke-dasharray="4 4"/>
+   <path d="${area}" fill="url(#ga)"/>
+   <polyline points="${pts.join(' ')}" fill="none" stroke="var(--lime)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+   <circle cx="${x(last)}" cy="${y(vals[last])}" r="5" fill="var(--lime)"/>
+   ${ann}${labels}
+  </svg>`;}
+
+function repartoData(){const sums={nec:0,ocio:0,aho:0};let totalAmt=0;
+  RETOS.filter(r=>r.type==='reparto'&&st.retos[r.id]).forEach(r=>{const d=st.retos[r.id];SPLIT_KEYS.forEach((k,i)=>sums[k]+=d.split[i]/100*r.amt);totalAmt+=r.amt;});
+  return totalAmt?{sums,totalAmt,pct:Object.fromEntries(SPLIT_KEYS.map(k=>[k,Math.round(sums[k]/totalAmt*100)]))}:null;}
+
+function analysis(r){
+  const a=r.P.a,gross=Object.values(a).reduce((x,y)=>x+y,0);const out=[];
+  const top=Object.entries(a).filter(([k])=>!['cash','ahorro','fondo'].includes(k)).sort((p,q)=>q[1]-p[1])[0];
+  if(top&&top[1]/gross>.4)out.push(['warn',`El ${Math.round(top[1]/gross*100)} % de tu dinero está en ${ASSET_NAME[top[0]]}. Si cae, arrastra toda tu cartera.`]);
+  if(a.cash/gross>.4)out.push(['warn',`Tienes el ${Math.round(a.cash/gross*100)} % en efectivo. La inflación le resta valor cada semana.`]);
+  if(r.P.deuda>0)out.push(['warn',`Debes ${cur(r.P.deuda)}. Págalo antes de invertir más: la deuda tiene coste.`]);
+  if(a.ahorro<1000)out.push(['warn','Tu colchón de emergencia está por debajo de 1.000 C. Un imprevisto te obligaría a vender o endeudarte.']);
+  else out.push(['ok',`Tienes ${cur(a.ahorro)} de colchón en la cuenta de ahorro para imprevistos.`]);
+  if(a.fondo/gross>.25)out.push(['ok',`El ${Math.round(a.fondo/gross*100)} % está en un fondo indexado: diversificado y a largo plazo.`]);
+  return out.slice(0,3);}
+
+function vBanco(){
+  const deciding=st.phase==='decide'&&st.choices.length<7;
+  const r=playerSim(deciding);const a=r.P.a;const lg=league(deciding);const me=lg.find(x=>x.me);
+  const gross=Object.values(a).reduce((x,y)=>x+y,0)||1;
+  const held=ALL.filter(k=>a[k]>.5);
+  const invested=held.filter(k=>!['cash','ahorro'].includes(k)).reduce((s,k)=>s+a[k],0);
+  // goal
+  const g=st.goal,prog=Math.min(100,Math.round(a.ahorro/g.amt*100)),left=Math.max(0,g.amt-a.ahorro);
+  const weeksPlayed=st.weeks.length+st.choices.length/7;const rate=weeksPlayed>0?a.ahorro/weeksPlayed:0;
+  const eta=left<=0?'¡Meta conseguida!':rate>0?`Faltan ${cur(left)} · ~${Math.max(1,Math.ceil(left/rate))} ${Math.ceil(left/rate)<=1?'semana':'semanas'}`:`Faltan ${cur(left)} · ahorra para estimarlo`;
+  const rep=repartoData();
+  const moves=[...r.ledger].reverse();const shown=st.allMoves?moves:moves.slice(0,5);
+  const panel=st.panel==='ahorrar'?`<div class="card"><b>Pasar efectivo a la cuenta de ahorro</b><span class="muted num" style="font-size:13px">Efectivo disponible: ${cur(a.cash)}</span>
+     <div class="seg">${[100,500].map(v=>`<button data-act="save" data-amt="${v}" ${a.cash<1?'disabled':''}>${fmt(v)} C</button>`).join('')}<button data-act="save" data-amt="all" ${a.cash<1?'disabled':''}>Todo</button></div></div>`
+   :st.panel==='mover'?`<div class="card"><b>Mover dinero entre activos</b>
+     <div class="two"><div class="field"><label for="mv-from">Desde</label><select id="mv-from">${held.map(k=>`<option value="${k}">${ASSET_NAME[k]} · ${cur(a[k])}</option>`).join('')}</select></div>
+     <div class="field"><label for="mv-to">Hacia</label><select id="mv-to">${['ahorro','fondo','cash'].concat(held.filter(k=>!['cash','ahorro','fondo'].includes(k))).map(k=>`<option value="${k}">${ASSET_NAME[k]}</option>`).join('')}</select></div></div>
+     <div class="field"><label for="mv-amt">Cantidad en Curritos</label><input id="mv-amt" type="number" min="1" step="50" value="500" inputmode="numeric"></div>
+     <button class="btn" data-act="doMove">Mover</button></div>`
+   :st.panel==='meta'?`<div class="card"><b>Nueva meta de ahorro</b>
+     <div class="field"><label for="g-name">Para qué ahorras</label><input id="g-name" value="" placeholder="Ej.: carné de conducir"></div>
+     <div class="field"><label for="g-amt">Cuánto necesitas (C)</label><input id="g-amt" type="number" min="100" step="100" value="3000" inputmode="numeric"></div>
+     <button class="btn" data-act="doGoal">Crear meta</button></div>`:'';
+  return `
+  <div class="top" style="align-items:center"><h2 style="font-size:26px">Mi banco</h2><span class="pill">Saldo de juego</span></div>
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <span class="muted" style="font-size:14px">Saldo total</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="big num" style="font-size:44px;letter-spacing:-1.5px">${cur(r.value)}</span><span class="chip ${r.value>=10000?'pos':'neg'} num">${pctOf(r.value-10000,10000)}</span></div>
+    <span class="muted" style="font-size:13px">desde el inicio de la liga · <b class="up" style="display:inline-flex;gap:4px;align-items:center">${ICON.trophy} ${me.rv}.º de 6 en tu liga</b></span>
+  </div>
+  <div class="card" style="gap:4px">${bankChart(r.vals,r.ledger)}</div>
+  <div class="actions">
+    <button class="act" data-act="panel" data-p="mover" aria-expanded="${st.panel==='mover'}">${ICON.swap}Mover dinero</button>
+    <button class="act main" data-act="panel" data-p="ahorrar" aria-expanded="${st.panel==='ahorrar'}">${ICON.plus}Ahorrar</button>
+    <button class="act" data-act="panel" data-p="meta" aria-expanded="${st.panel==='meta'}">${ICON.flag}Crear meta</button>
+  </div>
+  ${panel}
+  <div class="card" style="gap:12px">
+    <div style="display:flex;gap:12px;align-items:center"><div class="icon-box">${ICON.plane}</div>
+      <div style="flex:1;min-width:0"><span class="muted" style="font-size:13px">Meta de ahorro</span><div style="font-weight:700;font-size:17px">${esc(g.name)}</div></div>
+      <b class="up num" style="font-family:var(--display);font-size:24px">${prog} %</b></div>
+    <div class="bar" style="height:10px"><i style="width:${prog}%"></i></div>
+    <div class="top num" style="font-size:13px"><span><b>${cur(a.ahorro)}</b> <span class="muted">de ${cur(g.amt)}</span></span><span class="muted">${eta}</span></div>
+  </div>
+  <div class="card" style="gap:12px">
+    <div class="top"><span class="eyebrow">Tu cartera</span><span class="muted num" style="font-size:13px">Invertido ${Math.round(invested/gross*100)} %</span></div>
+    <div class="stack" role="img" aria-label="Reparto de tu cartera por activo">${held.map(k=>`<i style="width:${a[k]/gross*100}%;background:${ASSET_COLOR[k]}"></i>`).join('')}</div>
+    <div class="legend">${held.sort((p,q)=>a[q]-a[p]).map(k=>`<div class="row"><span><i class="dot" style="background:${ASSET_COLOR[k]}"></i>${ASSET_NAME[k]}</span><span class="num"><b>${cur(a[k])}</b> <span class="muted">· ${Math.round(a[k]/gross*100)} %</span></span></div>`).join('')}
+      ${r.P.deuda>0?`<div class="row"><span class="down">Deuda pendiente</span><b class="num down">−${cur(r.P.deuda)}</b></div>`:''}</div>
+    <span class="muted" style="font-size:12px">Tu cartera se mantiene de una semana a otra: lo que decidas hoy sigue contando.</span>
+  </div>
+  <div class="card" style="gap:12px">
+    <div class="top"><span class="eyebrow">Tu reparto</span><span class="muted" style="font-size:13px">Objetivo 50 / 30 / 20</span></div>
+    ${rep?`<div class="rep"><span>Tú</span><div class="stack">${SPLIT_KEYS.map(k=>`<i style="width:${rep.pct[k]}%;background:${SPLIT_COLOR[k]}"></i>`).join('')}</div>
+      <span>Objetivo</span><div class="stack" style="height:6px;opacity:.55">${SPLIT_KEYS.map(k=>`<i style="width:${TARGET[k]}%;background:${SPLIT_COLOR[k]}"></i>`).join('')}</div></div>
+     <div class="grid2" style="grid-template-columns:repeat(3,minmax(0,1fr))">${SPLIT_KEYS.map(k=>`<div><span class="muted" style="font-size:13px"><i class="dot" style="background:${SPLIT_COLOR[k]}"></i>${SPLIT_NAME[k]}</span><div class="num" style="font-weight:700">${cur(rep.sums[k])} · ${rep.pct[k]} %</div></div>`).join('')}</div>
+     ${rep.pct.aho>=20?`<div class="ok">${ICON.check}<span>Ahorras un <b class="up">${rep.pct.aho} %</b>, por encima del 20 % recomendado. ¡Buen trabajo!</span></div>`:`<div class="warn">${ICON.alert}<span>Ahorras un ${rep.pct.aho} %. Intenta llegar al 20 % de lo que ingresas.</span></div>`}
+     <span class="muted" style="font-size:12px">Calculado con tus retos de reparto (${cur(rep.totalAmt)} repartidos).</span>`
+    :`<span class="muted" style="font-size:14px">Aún no hay datos. Haz un reto de reparto y verás cómo divides tu dinero entre necesario, ocio y ahorro.</span><button class="btn alt" data-tab="retos">Ir a Retos</button>`}
+  </div>
+  <div class="card" style="gap:10px">
+    <span class="eyebrow" style="display:flex;gap:6px;align-items:center">${ICON.spark} Análisis de tu situación</span>
+    ${analysis(r).map(([t,m])=>`<div class="${t}">${t==='ok'?ICON.check:ICON.alert}<span>${m}</span></div>`).join('')}
+  </div>
+  <div style="display:flex;flex-direction:column">
+    <div class="top" style="align-items:center"><span class="eyebrow">Movimientos</span>${moves.length>5?`<button class="linkbtn" data-act="allMoves">${st.allMoves?'Ver menos':'Ver todos'}</button>`:''}</div>
+    ${shown.length?shown.map(m=>{const neg=m.delta<-.5;const ic=m.kind==='news'?'news':m.kind==='op'?'op':'dec';return `<div class="mv"><div class="mv-i ${neg?'neg':ic==='news'?'news':ic==='dec'?'dec':''}">${ICON[ic]}</div>
+      <div class="mv-t"><b>${esc(m.label)}</b><span>Sem ${m.w+1} · ${DAYS[m.day]} · ${m.kind==='news'?'Mercado':m.kind==='op'?'Movimiento propio':'Tu decisión'}</span></div>
+      <span class="mv-a num ${Math.abs(m.delta)<.5?'muted':cls(m.delta)}">${Math.abs(m.delta)<.5?'Sin coste':signed(m.delta)}</span></div>`;}).join(''):'<p class="muted" style="padding:8px 0">Aún no hay movimientos. Empieza en la pestaña Liga.</p>'}
+  </div>`;}
+
+/* ---------- retos tab ---------- */
+function xpCard(){const L=levelInfo();return `<div class="card news" style="gap:8px">
+  <div class="top" style="align-items:center"><span class="eyebrow">Nivel ${L.name}</span><b class="num">${L.xp} XP</b></div>
+  <div class="bar" style="background:rgba(14,15,26,.25)"><i style="width:${L.into/XP_LEVEL*100}%;background:var(--ink)"></i></div>
+  <span style="font-size:13px;font-weight:500">${L.next?`Te faltan ${XP_LEVEL-L.into} XP para nivel ${L.next}`:'Nivel máximo alcanzado'}</span></div>`;}
+
+function vRetos(){
+  if(st.reto)return vReto(RETOS.find(r=>r.id===st.reto));
+  return `<h2 style="font-size:26px">Retos</h2>
+  <p class="muted" style="font-size:14px">Retos individuales cortos: ganas XP, subes de nivel y activas insignias. No mueven tu saldo de la liga.</p>
+  ${xpCard()}
+  <span class="eyebrow">Retos de esta semana</span>
+  ${RETOS.map(r=>{const d=st.retos[r.id];return `<button class="reto ${d?'done':''}" data-act="openReto" data-id="${r.id}">
+    <div class="icon-box" style="background:${d?'var(--lime-bg)':'var(--violet-bg)'};color:${d?'var(--lime)':'var(--violet-soft)'}">${d?ICON.check:ICON.spark}</div>
+    <span class="reto-t"><b>${r.title}</b><span>${d?'Completado':r.sub}</span></span>
+    <span class="xp ${d?'got':''}">${d?'+'+d.xp:'Hasta '+r.max} XP</span></button>`;}).join('')}
+  <div class="tip"><span>Cada decisión de la liga suma 10 XP y cerrar la semana, 40 XP más.</span></div>`;}
+
+function splitFeedback(s){const [n,o,a]=s;const out=[];
+  if(a>=20)out.push(`Ahorras un ${a} %: cumples la regla del 20 %.`);else out.push(`Solo ahorras un ${a} %. Lo recomendable es un 20 %.`);
+  if(o>35)out.push('El ocio se lleva más de un tercio. Ojo con los caprichos.');
+  if(n<40)out.push('¿Seguro que cubres lo necesario con menos del 40 %?');
+  return out;}
+function splitXP(s){const dist=SPLIT_KEYS.reduce((t,k,i)=>t+Math.abs(s[i]-TARGET[k]),0);return Math.round(20+30*Math.max(0,1-dist/60));}
+
+function vReto(r){
+  const d=st.retos[r.id];
+  const back=`<button class="back" data-act="closeReto">${ICON.back} Retos</button>`;
+  if(r.type==='reparto'){
+    const s=d?d.split:st.split;
+    return back+`<div class="top"><h2 style="font-size:24px">${r.title}</h2><span class="xp ${d?'got':''}">${d?'+'+d.xp:'Hasta '+r.max} XP</span></div>
+    <div class="card"><span class="eyebrow">Situación</span><b style="font-family:var(--display);font-size:20px;line-height:1.2">${r.sub}</b></div>
+    <div class="stack" id="sp-bar" style="height:16px">${SPLIT_KEYS.map((k,i)=>`<i style="width:${s[i]}%;background:${SPLIT_COLOR[k]}"></i>`).join('')}</div>
+    ${SPLIT_KEYS.map((k,i)=>`<div class="card slider">
+      <div class="slider-h"><label for="sl-${i}" style="font-weight:700">${SPLIT_NAME[k]}</label><b class="num"><span id="sl-v-${i}">${cur(s[i]/100*r.amt)}</span> <span class="muted" style="font-family:var(--body);font-size:13px;font-weight:500" id="sl-p-${i}">${s[i]} %</span></b></div>
+      <input type="range" id="sl-${i}" min="0" max="100" step="5" value="${s[i]}" style="accent-color:${SPLIT_COLOR[k]}" ${d?'disabled':''} aria-valuetext="${s[i]} %">
+      <span class="muted" style="font-size:12px">${['Transporte, comida, móvil','Planes, viajes, caprichos','Fondo de emergencia e inversión'][i]}</span></div>`).join('')}
+    ${d?`<div class="ok">${ICON.check}<span>Reto completado: <b>+${d.xp} XP</b>. ${splitFeedback(s).join(' ')}</span></div><button class="btn alt" data-act="closeReto">Volver a retos</button>`
+       :`<button class="btn" data-act="doSplit">Confirmar reparto</button>`}`;
+  }
+  if(r.type==='capricho'){
+    const ans=d?d.ans:st.cap;const all=r.items.every((_,i)=>ans[i]!=null);
+    return back+`<div class="top"><h2 style="font-size:24px">${r.title}</h2><span class="xp ${d?'got':''}">${d?'+'+d.xp:'Hasta '+r.max} XP</span></div>
+    <p class="muted" style="font-size:14px">${r.sub}. 8 XP por acierto.</p>
+    ${r.items.map((it,i)=>`<div class="card"><b>${it[0]}</b><div class="two">${['Necesidad','Capricho'].map((lab,j)=>{let c='';if(d){if(j===it[1])c='right';else if(ans[i]===j)c='wrong';}
+      return `<button data-act="cap" data-i="${i}" data-j="${j}" aria-pressed="${ans[i]===j}" class="${c}" ${d?'disabled':''}>${lab}</button>`;}).join('')}</div></div>`).join('')}
+    ${d?`<div class="ok">${ICON.check}<span>Has acertado ${d.ok} de ${r.items.length}: <b>+${d.xp} XP</b>.</span></div><button class="btn alt" data-act="closeReto">Volver a retos</button>`
+       :`<button class="btn" data-act="doCap" ${all?'':'disabled'}>Comprobar</button>`}`;
+  }
+  if(r.type==='trampa'){
+    const ans=d?d.ans:st.tr;const all=r.qs.every((_,i)=>ans[i]!=null);
+    return back+`<div class="top"><h2 style="font-size:24px">${r.title}</h2><span class="xp ${d?'got':''}">${d?'+'+d.xp:'Hasta '+r.max} XP</span></div>
+    <p class="muted" style="font-size:14px">${r.sub} 20 XP por acierto.</p>
+    ${r.qs.map((q,i)=>`<div class="card"><b>${q.q}: ¿qué sale más caro?</b><div style="display:flex;flex-direction:column;gap:8px">${q.o.map((o,j)=>{let c='';if(d){if(j===q.c)c='right';else if(ans[i]===j)c='wrong';}
+      return `<div class="two" style="grid-template-columns:1fr"><button data-act="tr" data-i="${i}" data-j="${j}" aria-pressed="${ans[i]===j}" class="${c}" ${d?'disabled':''}>${o}</button></div>`;}).join('')}</div>
+      ${d?`<span class="muted" style="font-size:13px">${q.why}</span>`:''}</div>`).join('')}
+    ${d?`<div class="ok">${ICON.check}<span>Has acertado ${d.ok} de ${r.qs.length}: <b>+${d.xp} XP</b>.</span></div><button class="btn alt" data-act="closeReto">Volver a retos</button>`
+       :`<button class="btn" data-act="doTr" ${all?'':'disabled'}>Comprobar</button>`}`;
+  }
+}
+
+/* ---------- perfil tab ---------- */
+function vPerfil(){
+  const r=playerSim(st.phase==='decide'&&st.choices.length<7);const p=profileOf(r);const L=levelInfo();
+  const played=st.weeks.length||st.choices.length;
+  return `<div class="top" style="align-items:center"><h2 style="font-size:24px">@${esc(st.user)}</h2><span class="pill">Semana ${weekNo()} de 12</span></div>
+  <div class="card news" style="flex-direction:row;align-items:center;gap:16px">
+    <div style="flex:0 0 76px;height:76px;border-radius:20px;background:var(--ink);color:var(--lime);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:32px" class="num">${r.idx}</div>
+    <div><span class="eyebrow">Salud financiera · sobre 100</span><div style="font-family:var(--display);font-weight:800;font-size:22px">${played?p:'Por descubrir'}</div></div>
+  </div>
+  <div class="card" style="gap:14px">${IND.map(k=>`<div class="ind"><div class="ind-h"><span>${IND_NAME[k]} <span class="muted">· ${Math.round(W[k]*100)} %</span></span><b class="num">${r.score[k]}</b></div><div class="bar"><i style="width:${r.score[k]}%;background:${r.score[k]>=50?'var(--lime)':'var(--coral)'}"></i></div></div>`).join('')}</div>
+  ${played?`<div class="card" style="gap:8px"><span class="eyebrow" style="display:flex;gap:6px;align-items:center">${ICON.spark} Análisis con IA</span><span style="font-size:14px">${INSIGHT[p]}</span></div>`:''}
+  <span class="eyebrow">Insignia de nivel</span>
+  <div class="lvbadge">
+    <div class="hex">${L.key}</div>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+      <span class="active-tag">${ICON.check.replace('<svg','<svg width="12" height="12"')} Activada</span>
+      <b style="font-family:var(--display);font-size:22px;line-height:1.1">Nivel ${L.name}</b>
+      <div class="bar"><i style="width:${L.into/XP_LEVEL*100}%"></i></div>
+      <span class="muted num" style="font-size:12px">${L.next?`${L.into} / ${XP_LEVEL} XP para ${L.next}`:`${L.xp} XP · nivel máximo`}</span>
+    </div>
+  </div>
+  <div class="minihex">${LEVELS.map((k,i)=>`<div><div class="hex ${i>L.li?'off':''}">${k}</div>${LEVEL[k].n}${i>L.li?' · bloqueada':''}</div>`).join('')}</div>
+  <button class="reset" data-act="reset">Empezar de cero</button>`;}
+
+V.semana=()=>{if(!st.sc)return V.ligas();return st.tab==='banco'?vBanco():st.tab==='perfil'?vPerfil():st.tab==='retos'?vRetos():vLiga();};
+
+const INSIGHT={
+ Impulsivo:'Decides rápido y bajo presión. Prueba a esperar 24 horas antes de vender tras una caída o de comprar algo a plazos.',
+ Especulador:'Buscas la máxima rentabilidad y concentras tu dinero. Cuando aciertas ganas mucho, pero un solo giro te cuesta caro. Prueba a no superar el 30 % en una sola empresa.',
+ Equilibrado:'Repartes el riesgo y no reaccionas por miedo. Tu siguiente paso: invertir cada mes una parte fija de lo que ahorras.',
+ Conservador:'Proteges tu dinero y evitas deudas, pero apenas lo pones a trabajar. Prueba a mover una parte a un fondo indexado a largo plazo.',
+ 'En progreso':'Combinas buenas decisiones con algún impulso. Tu decisión clave de esta semana es donde tienes más margen de mejora.'};
+const IND_TIP={ahorro:'Fija una cantidad para ahorrar cada semana antes de gastar en ocio.',imprev:'Mantén un colchón de emergencia y evita pagar imprevistos a plazos.',inv:'Diversifica y no vendas por miedo justo después de una caída.',conoc:'Investiga antes de invertir y desconfía de las promesas fáciles.'};
+
+/* ---------- informe & ranking ---------- */
+V.informe=()=>{
+  const sc=SC(),r=playerSim(false),p=profileOf(r),lg=league(false),me=lg.find(x=>x.me);
+  const wk=r.ledger.filter(l=>l.w===st.weeks.length);
+  const mk=wk.filter(l=>l.kind==='news').reduce((a,l)=>a+l.delta,0),dc=wk.filter(l=>l.kind==='dec').reduce((a,l)=>a+l.delta,0);
+  const weekDelta=r.value-r.weekStartVal;
+  const bots=lg.filter(x=>!x.me);const avg=bots.reduce((a,x)=>a+(x.value-x.start),0)/bots.length;
+  let key=null;
+  st.choices.forEach((c,i)=>{const alts='ABC'.split('').map(a=>{const ch=[...st.choices];ch[i]=a;return {a,v:playerSim(false,ch).value};});
+    const spread=Math.max(...alts.map(x=>x.v))-Math.min(...alts.map(x=>x.v));const best=alts.reduce((m,x)=>x.v>m.v?x:m);
+    if(!key||spread>key.spread)key={i,spread,best};});
+  const mine=sc.days[key.i].opts['ABC'.indexOf(st.choices[key.i])].t;
+  const keyTxt=key.best.a===st.choices[key.i]?`El ${DAYS[key.i].toLowerCase()} fue el día que más pesó y acertaste con «${mine}».`
+    :`El ${DAYS[key.i].toLowerCase()} fue el día que más pesó. Con «${sc.days[key.i].opts['ABC'.indexOf(key.best.a)].t}» en vez de «${mine}» habrías acabado en ${cur(key.best.v)}.`;
+  const weakest=IND.reduce((m,k)=>r.score[k]<r.score[m]?k:m,IND[0]);
+  const an=analysis(r);
+  return `<button class="back" data-act="backLiga">${ICON.back} Liga</button>
+  <div><div class="muted" style="font-size:13px">Informe semanal · Semana ${weekNo()} · ${sc.name}</div><h2 style="font-size:26px">Así ha ido tu semana, @${esc(st.user)}</h2></div>
+  <div class="hero-money"><span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Patrimonio al cierre</span><span class="amt num">${cur(r.value)}</span>
+   <span class="num" style="font-weight:700">${signed(weekDelta)} esta semana · ${pctOf(r.value-10000,10000)} desde el inicio</span></div>
+  <div class="grid2">
+   <div class="tile"><span class="muted" style="font-size:12px">Ranking patrimonio</span><b class="num">${me.rv}.º <span class="muted" style="font-size:13px;font-family:var(--body);font-weight:500">de 6</span></b></div>
+   <div class="tile"><span class="muted" style="font-size:12px">Salud financiera</span><b class="num up">${r.idx} <span class="muted" style="font-size:13px;font-family:var(--body);font-weight:500">/100 · ${me.ri}.º</span></b></div>
+  </div>
+  <div class="card" style="gap:0">
+   <span class="eyebrow" style="margin-bottom:6px">Resumen de movimientos</span>
+   <div class="row"><span>Noticias y mercado</span><b class="num ${cls(mk)}">${signed(mk)}</b></div>
+   <div class="row"><span>Tus decisiones (gastos, ingresos y deudas)</span><b class="num ${cls(dc)}">${signed(dc)}</b></div>
+   <div class="row"><span><b>Total de la semana</b></span><b class="num ${cls(weekDelta)}">${signed(weekDelta)}</b></div>
+  </div>
+  <div class="card" style="gap:0">
+   <span class="eyebrow" style="margin-bottom:6px">Día a día</span>
+   ${st.choices.map((c,i)=>{const items=wk.filter(l=>l.day===i);const d=items.reduce((a,l)=>a+l.delta,0);const dec=items.find(l=>l.kind==='dec');
+     return `<div class="row"><span style="min-width:0"><b style="color:var(--violet-soft)">${DAY1[i]}</b>  ${esc(dec?dec.label:'')}${items.some(l=>l.kind==='news')?`<br><span class="muted" style="font-size:12px">${esc(items.find(l=>l.kind==='news').label)}</span>`:''}</span><span class="num ${Math.abs(d)<.5?'muted':cls(d)}" style="white-space:nowrap">${Math.abs(d)<.5?'0 C':signed(d)}</span></div>`;}).join('')}
+  </div>
+  <div class="card" style="gap:10px">
+   <span class="eyebrow" style="display:flex;gap:6px;align-items:center">${ICON.spark} Análisis de la situación</span>
+   <span style="font-size:14px">${weekDelta>=avg?'Has superado':'Te has quedado por debajo de'} la media de tu liga esta semana (${signed(avg)}).</span>
+   <span style="font-size:14px">${keyTxt}</span>
+   ${an.map(([t,m])=>`<div class="${t}">${t==='ok'?ICON.check:ICON.alert}<span>${m}</span></div>`).join('')}
+   <span style="font-size:14px"><b>Para la próxima semana:</b> tu indicador más bajo es ${IND_NAME[weakest].toLowerCase()} (${r.score[weakest]}). ${IND_TIP[weakest]}</span>
+  </div>
+  <div class="card news"><span class="eyebrow">Tu personalidad financiera</span><b style="font-family:var(--display);font-size:24px">${p}</b><span style="font-size:14px;font-weight:500">${INSIGHT[p]}</span></div>
+  <div class="card"><span class="eyebrow" style="color:var(--muted)">Lo que pasó en la realidad</span><span style="font-size:14px">${sc.real}</span></div>
+  <button class="btn" data-act="go" data-to="ranking">Ver la clasificación final</button>`;};
+
+V.ranking=()=>{
+  const lg=league(false);const prev=st.weeks.length?league(false,false):null;
+  const prevPos=prev?Object.fromEntries(prev.map(x=>[x.name,x.rv])):null;
+  const champ=[...lg].sort((a,b)=>(a.rv+a.ri)-(b.rv+b.ri)||b.value-a.value)[0];
+  const me=lg.find(x=>x.me);
+  const pod=[lg[1],lg[0],lg[2]];const H=[92,124,72];const C=['var(--silver)','var(--gold)','var(--bronze)'];const P=[2,1,3];
+  const mvTxt=x=>{if(!prevPos)return '<span class="mveq">—</span>';const d=prevPos[x.name]-x.rv;return d>0?`<span class="mvup">▲ ${d}</span>`:d<0?`<span class="mvdn">▼ ${-d}</span>`:'<span class="mveq">=</span>';};
+  return `<button class="back" data-act="backLiga">${ICON.back} Liga</button>
+  <div><div class="muted" style="font-size:13px">Liga Valencia Sub-25 · Semana ${weekNo()} cerrada</div><h2 style="font-size:26px">Clasificación final</h2></div>
+  <div class="podium" aria-label="Podio de la semana">${pod.map((x,i)=>`<div class="pod ${x.me?'me':''}"><div class="av">${esc(x.name[0].toUpperCase())}</div><span class="nm">@${esc(x.name)}</span><span class="val num">${cur(x.value)}</span><div class="step" style="height:${H[i]}px;background:${C[i]}">${P[i]}</div></div>`).join('')}</div>
+  <div class="card news" style="gap:4px"><span class="eyebrow">Campeón de la semana</span><b style="font-family:var(--display);font-size:20px">@${esc(champ.name)}${champ.me?' (¡tú!)':''}</b><span style="font-size:13px;font-weight:500">Mejor combinación de patrimonio y salud financiera: ${cur(champ.value)} · ${champ.idx}/100</span></div>
+  <div class="card" style="gap:0">
+   <div class="row muted" style="font-size:12px"><span>Jugador</span><span>Patrimonio · salud · cambio</span></div>
+   ${lg.map(x=>`<div class="row" style="${x.me?'color:var(--lime);font-weight:700':''}"><span>${x.rv}  @${esc(x.name)}${x.me?' (tú)':''}</span><span class="num" style="display:flex;gap:10px;align-items:center">${cur(x.value)} · ${x.idx} ${mvTxt(x)}</span></div>`).join('')}
+  </div>
+  <div class="tip"><span>${me.rv<=3?`Estás en el podio. `:''}${prevPos?`La semana pasada ibas ${prevPos[st.user]}.º; ahora vas ${me.rv}.º.`:'Es la primera semana: las flechas de subida y bajada aparecen a partir de la semana 2.'}</span></div>
+  <button class="btn" data-act="share">Compartir resultado con mi liga</button>
+  <button class="btn alt" data-act="go" data-to="ligas">Jugar la semana ${weekNo()+1}</button>`;};
+
+/* ---------- render & events ---------- */
+let toastT;
+function toast(msg){let t=$phone.querySelector('.toast');if(!t){t=document.createElement('div');t.className='toast';t.setAttribute('role','status');$phone.appendChild(t);}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},2600);}
+function renderNotif(){
+  let n=$phone.querySelector('.notif');
+  if(!st.notif){if(n)n.remove();return;}
+  const r=playerSim(false),lg=league(false),me=lg.find(x=>x.me);
+  const html=`<div class="logo" aria-hidden="true">FL</div><div class="notif-t"><div class="notif-h"><span>Finan League</span><span>ahora</span></div>
+   <b>Semana ${weekNo()} cerrada: tu informe está listo</b><span class="num">Acabas con ${cur(r.value)} (${signed(r.value-r.weekStartVal)}) y vas ${me.rv}.º de 6 en tu liga.</span></div>`;
+  if(!n){n=document.createElement('button');n.className='notif';n.dataset.act='openNotif';$phone.appendChild(n);}
+  n.innerHTML=html;n.setAttribute('aria-label','Notificación: semana cerrada, abrir informe');
+}
+function render(keepScroll){
+  const y=$screen.scrollTop;
+  $screen.innerHTML=V[st.screen]();
+  $tabs.hidden=!(st.screen==='semana'&&st.sc);
+  $tabs.querySelectorAll('.tab').forEach(b=>{if(b.dataset.tab===st.tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  $screen.scrollTop=keepScroll?y:0;
+  renderNotif();
+  const f=document.getElementById('reg');
+  if(f)f.addEventListener('submit',e=>{e.preventDefault();st.user=(document.getElementById('f-user').value.trim()||'lucia_fl').replace(/^@/,'');st.email=document.getElementById('f-email').value;go('quiz');});
+  checkLevelUp();
+  try{localStorage.setItem('finanleague-proto',JSON.stringify(st));}catch(e){}
+}
+function go(s){st.screen=s;st.panel=null;render();}
+function startSc(id){
+  if(st.sc&&st.choices.length===7)st.weeks.push({sc:st.sc,choices:[...st.choices]});
+  else st.ops=st.ops.filter(o=>o.w!==st.weeks.length);
+  Object.assign(st,{sc:id,choices:[],sel:null,phase:'decide',tab:'liga',closed:false,notif:false,panel:null});
+  go('semana');
+}
+function addOp(from,to,amt,label){st.ops.push({w:st.weeks.length,at:st.choices.length,from,to,amt,label});}
+
+document.addEventListener('input',e=>{
+  const m=e.target.id&&e.target.id.match(/^sl-(\d)$/);if(!m)return;
+  const r=RETOS.find(x=>x.id===st.reto);const i=+m[1];const v=+e.target.value;
+  const others=[0,1,2].filter(k=>k!==i);const rem=100-v;const s=st.split;const sum=s[others[0]]+s[others[1]];
+  let a=sum>0?Math.round(rem*s[others[0]]/sum/5)*5:Math.round(rem/2/5)*5;a=Math.max(0,Math.min(rem,a));
+  s[i]=v;s[others[0]]=a;s[others[1]]=rem-a;
+  [0,1,2].forEach(k=>{const el=document.getElementById('sl-'+k);if(k!==i)el.value=s[k];el.setAttribute('aria-valuetext',s[k]+' %');
+    document.getElementById('sl-v-'+k).textContent=cur(s[k]/100*r.amt);document.getElementById('sl-p-'+k).textContent=s[k]+' %';});
+  document.querySelectorAll('#sp-bar i').forEach((el,k)=>el.style.width=s[k]+'%');
+});
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act],[data-tab]');if(!b||b.disabled)return;
+  if(b.dataset.tab){st.tab=b.dataset.tab;st.reto=null;st.panel=null;if(st.screen!=='semana')st.screen='semana';render();return;}
+  const a=b.dataset.act;
+  if(a==='go')go(b.dataset.to);
+  else if(a==='qpick'){st.qsel=+b.dataset.i;render(true);}
+  else if(a==='qnext'){st.qscore+=QUIZ[st.qi].o[st.qsel][1];st.qsel=null;
+    if(st.qi<QUIZ.length-1){st.qi++;render();}else{st.level=st.qscore<=3?'B':st.qscore<=7?'I':'A';st.shownLevel=LEVELS.indexOf(st.level);go('nivel');}}
+  else if(a==='copy'){try{navigator.clipboard.writeText('FNL-482').then(()=>toast('Código FNL-482 copiado'),()=>toast('Tu código es FNL-482'));}catch(err){toast('Tu código es FNL-482');}}
+  else if(a==='share'){const me=league(false).find(x=>x.me);const txt=`Semana ${weekNo()} en Finan League: acabo ${me.rv}.º con ${cur(me.value)}. ¿Me superas? Código FNL-482`;
+    try{navigator.clipboard.writeText(txt).then(()=>toast('Resultado copiado para compartir'),()=>toast(txt));}catch(err){toast(txt);}}
+  else if(a==='pickSc')startSc(b.dataset.id);
+  else if(a==='resume'){st.tab='liga';go('semana');}
+  else if(a==='pick'){st.sel=+b.dataset.i;render(true);}
+  else if(a==='confirm'&&st.sel!=null){st.choices.push('ABC'[st.sel]);st.sel=null;st.phase='result';render(true);}
+  else if(a==='next'){if(st.choices.length>=7){st.closed=true;st.notif=true;render();}else{st.phase='decide';render();}}
+  else if(a==='openNotif'){st.notif=false;go('informe');}
+  else if(a==='backLiga'){st.tab='liga';go('semana');}
+  else if(a==='panel'){st.panel=st.panel===b.dataset.p?null:b.dataset.p;render(true);}
+  else if(a==='save'){const r=playerSim(st.phase==='decide'&&st.choices.length<7);const amt=b.dataset.amt==='all'?r.P.a.cash:Math.min(+b.dataset.amt,r.P.a.cash);
+    if(amt<1){toast('No tienes efectivo disponible');return;}addOp('cash','ahorro',amt,`Ahorro: ${cur(amt)} a la cuenta de ahorro`);st.panel=null;render(true);toast(`${cur(amt)} pasados a tu cuenta de ahorro`);}
+  else if(a==='doMove'){const from=document.getElementById('mv-from').value,to=document.getElementById('mv-to').value,amt=+document.getElementById('mv-amt').value;
+    const r=playerSim(st.phase==='decide'&&st.choices.length<7);
+    if(from===to){toast('Elige dos activos distintos');return;}
+    if(!(amt>0)){toast('Escribe una cantidad mayor que 0');return;}
+    const real=Math.min(amt,r.P.a[from]);addOp(from,to,real,`${ASSET_NAME[from]} → ${ASSET_NAME[to]}: ${cur(real)}`);st.panel=null;render(true);toast(`Movidos ${cur(real)} a ${ASSET_NAME[to]}`);}
+  else if(a==='doGoal'){const name=document.getElementById('g-name').value.trim(),amt=+document.getElementById('g-amt').value;
+    if(!name){toast('Escribe para qué ahorras');return;}if(!(amt>=100)){toast('La meta debe ser de al menos 100 C');return;}
+    st.goal={name,amt};st.panel=null;render(true);toast('Meta creada');}
+  else if(a==='allMoves'){st.allMoves=!st.allMoves;render(true);}
+  else if(a==='openReto'){st.reto=b.dataset.id;st.split=[50,30,20];st.cap=[];st.tr=[];render();}
+  else if(a==='closeReto'){st.reto=null;render();}
+  else if(a==='doSplit'){const s=[...st.split];const xp=splitXP(s);st.retos[st.reto]={xp,split:s};render(true);toast(`+${xp} XP`);}
+  else if(a==='cap'){st.cap[+b.dataset.i]=+b.dataset.j;render(true);}
+  else if(a==='doCap'){const r=RETOS.find(x=>x.id==='capricho');const ok=r.items.filter((it,i)=>st.cap[i]===it[1]).length;st.retos.capricho={xp:ok*8,ok,ans:[...st.cap]};render(true);toast(`+${ok*8} XP`);}
+  else if(a==='tr'){st.tr[+b.dataset.i]=+b.dataset.j;render(true);}
+  else if(a==='doTr'){const r=RETOS.find(x=>x.id==='trampa');const ok=r.qs.filter((q,i)=>st.tr[i]===q.c).length;st.retos.trampa={xp:ok*20,ok,ans:[...st.tr]};render(true);toast(`+${ok*20} XP`);}
+  else if(a==='reset'){Object.assign(st,FRESH());render();}
+  else if(a==='jump-liga'){go('ligas');}
+  else if(a==='jump-cierre'){Object.assign(st,{sc:'opep',choices:'BBABCBC'.split(''),phase:'result',closed:true,notif:true,tab:'liga',reto:null,panel:null});
+    st.ops=st.ops.filter(o=>o.w!==st.weeks.length);go('semana');}
+});
+
+(function boot(){
+  try{const saved=JSON.parse(localStorage.getItem('finanleague-proto')||'null');
+    if(saved&&saved.screen&&V[saved.screen]&&Array.isArray(saved.weeks)&&(!saved.sc||SCENARIOS[saved.sc]))Object.assign(st,saved,{notif:saved.notif&&saved.closed});}catch(e){}
+  render();
+})();
+</script>
+
+</body>
+</html>
