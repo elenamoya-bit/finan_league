@@ -6,4 +6,8 @@ Proyecto de Creación e Innovación · MBA EDEM.
 Se juega desde el móvil: empiezas con 10.000 Curritos (C), el lunes se fija un problema y cada día tomas una decisión.
 El domingo recibes tu informe semanal y la clasificación de tu liga.
 
+**Jugar:** https://elenamoya-bit.github.io/finan_league/
+
+**Vídeo explicativo:** https://elenamoya-bit.github.io/finan_league/video.html
+
 Escenarios simulados: los porcentajes son parámetros de juego, no predicciones ni datos reales.
